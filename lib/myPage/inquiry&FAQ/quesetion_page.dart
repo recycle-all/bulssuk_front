@@ -224,78 +224,89 @@ class _QuestionFormState extends State<QuestionForm> {
 class QuestionHistory extends StatelessWidget {
   const QuestionHistory({Key? key}) : super(key: key);
 
+  Future<List<Map<String, dynamic>>> fetchInquiries() async {
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'jwt_token');
+
+    if (token == null) {
+      throw Exception('로그인이 필요합니다.');
+    }
+
+    final url = Uri.parse('http://localhost:8080/get-inquiries');
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data['inquiries']);
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['message'] ?? '문의 내역을 가져올 수 없습니다.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> inquiries = [
-      {
-        'title': '회원 탈퇴 문의',
-        'date': '2024-12-27',
-        'content': '회원 탈퇴 절차에 대해 알고 싶습니다. 더 자세한 정보가 필요합니다. 장황한 질문이 들어갈 경우에도 표시가 되어야 합니다.',
-        'response': '회원 탈퇴는 설정 메뉴에서 직접 진행 가능합니다. 문제가 발생하면 고객센터에 문의해주세요.',
-        'status': '답변 완료'
-      },
-      {
-        'title': '서비스 이용 문의',
-        'date': '2024-12-26',
-        'content': '앱에서 알림 설정이 안 되는 문제에 대해 문의드립니다. 업데이트 후에도 설정이 적용되지 않는 경우를 설명합니다.',
-        'response': '알림 설정은 최신 버전으로 업데이트 후 가능합니다. 지속적인 문제가 발생하면 버그 리포트를 보내주세요.',
-        'status': '답변 완료'
-      },
-      {
-        'title': '기타 문의',
-        'date': '2024-12-25',
-        'content': '기타 문의 사항이 있습니다. 답변 부탁드립니다.',
-        'response': '',
-        'status': '답변 대기'
-      },
-    ];
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: fetchInquiries(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('오류 발생: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('문의 내역이 없습니다.'));
+        }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16.0),
-      itemCount: inquiries.length,
-      itemBuilder: (context, index) {
-        final inquiry = inquiries[index];
-        final status = inquiry['status']!;
-        final isAnswered = status == '답변 완료';
+        final inquiries = snapshot.data!;
+        return ListView.builder(
+          padding: const EdgeInsets.all(16.0),
+          itemCount: inquiries.length,
+          itemBuilder: (context, index) {
+            final inquiry = inquiries[index];
+            final isAnswered = inquiry['is_answered'] == true;
 
-        return Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent), // 선 제거
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 24.0),
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            inquiry['title']!,
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4.0),
-                          Text(
-                            '문의 날짜: ${inquiry['date']}',
-                            style: const TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
+            return Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: Card(
+                margin: const EdgeInsets.only(bottom: 24.0),
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: ExpansionTile(
+                    tilePadding: EdgeInsets.zero,
+                    title: Row(
                       children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                inquiry['question_title'] ?? '제목 없음',
+                                style: const TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4.0),
+                              Text(
+                                '문의 날짜: ${inquiry['created_at']}',
+                                style: const TextStyle(
+                                  fontSize: 12.0,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8.0,
@@ -308,7 +319,7 @@ class QuestionHistory extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                           child: Text(
-                            status,
+                            isAnswered ? '답변 완료' : '답변 대기',
                             style: TextStyle(
                               fontSize: 12.0,
                               color: isAnswered ? Colors.green : Colors.orange,
@@ -316,52 +327,49 @@ class QuestionHistory extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8.0),
                       ],
                     ),
-                  ],
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '문의 내용:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14.0,
-                          ),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '문의 내용:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14.0,
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              inquiry['question_content'] ?? '내용 없음',
+                              style: const TextStyle(fontSize: 14.0),
+                            ),
+                            const SizedBox(height: 16.0),
+                            const Text(
+                              '관리자 답변:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14.0,
+                                color: Colors.green,
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              inquiry['answer_content'] ?? '답변이 아직 등록되지 않았습니다.',
+                              style: const TextStyle(fontSize: 14.0),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          inquiry['content']!,
-                          style: const TextStyle(fontSize: 14.0),
-                        ),
-                        const SizedBox(height: 16.0),
-                        const Text(
-                          '관리자 답변:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14.0,
-                            color: Colors.green,
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        Text(
-                          inquiry['response']!.isNotEmpty
-                              ? inquiry['response']!
-                              : '답변이 아직 등록되지 않았습니다.',
-                          style: const TextStyle(fontSize: 14.0),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
