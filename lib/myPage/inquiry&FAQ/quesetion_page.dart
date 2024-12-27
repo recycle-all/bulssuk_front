@@ -61,9 +61,17 @@ class _QuestionFormState extends State<QuestionForm> {
     final String title = _titleController.text.trim();
     final String content = _contentController.text.trim();
 
+    // 제목 글자 수 및 내용 입력 체크
     if (title.isEmpty || content.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('제목과 내용을 입력해주세요.')),
+      );
+      return;
+    }
+
+    if (title.length > 20) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('제목은 20자 이내로 입력해주세요.')),
       );
       return;
     }
@@ -73,11 +81,11 @@ class _QuestionFormState extends State<QuestionForm> {
     });
 
     try {
-      // Secure Storage에서 토큰 가져오기
-      final token = await _storage.read(key: 'jwt_token'); // JWT 토큰
-      if (token == null) {
+      // Secure Storage에서 JWT 토큰 가져오기
+      final token = await _storage.read(key: 'jwt_token');
+      if (token == null || token.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('로그인이 필요합니다.')),
+          const SnackBar(content: Text('세션이 만료되었습니다. 다시 로그인해주세요.')),
         );
         return;
       }
@@ -106,8 +114,15 @@ class _QuestionFormState extends State<QuestionForm> {
           const SnackBar(content: Text('문의가 성공적으로 등록되었습니다.')),
         );
 
-        // 문의내역 탭으로 이동
-        DefaultTabController.of(context)?.animateTo(1);
+        // 문의내역 탭으로 안전하게 이동
+        final tabController = DefaultTabController.of(context);
+        if (tabController != null) {
+          tabController.animateTo(1);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('문의내역으로 이동할 수 없습니다.')),
+          );
+        }
       } else {
         final responseData = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -116,11 +131,12 @@ class _QuestionFormState extends State<QuestionForm> {
           ),
         );
       }
-    } catch (error) {
+    } catch (error, stackTrace) {
+      print('Error: $error');
+      print('StackTrace: $stackTrace');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('서버와 연결할 수 없습니다.')),
       );
-      print('Error: $error');
     } finally {
       setState(() {
         _isLoading = false;
@@ -138,6 +154,7 @@ class _QuestionFormState extends State<QuestionForm> {
           // 제목 입력 필드
           TextField(
             controller: _titleController,
+            maxLength: 20, // 최대 글자 수 제한
             decoration: InputDecoration(
               labelText: '제목을 입력해주세요. (20자 이내)',
               labelStyle: const TextStyle(color: Colors.black),
