@@ -114,12 +114,12 @@ class _PointPageState extends State<PointPage> {
             children: [
               const Text(
                 '보유 포인트',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8.0),
               Text(
                 '${widget.totalPoints}p', // 총 포인트 표시
-                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold), // 더 큰 텍스트 크기
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // 더 큰 텍스트 크기
               ),
             ],
           ),
