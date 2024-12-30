@@ -37,7 +37,7 @@ class _BottomNavigationSectionState extends State<BottomNavigationSection> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const TreePage()),
+          MaterialPageRoute(builder: (context) => TreePage()),
         );
         break;
       case 3:
