@@ -52,7 +52,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
     }
 
     try {
-      final url = Uri.parse('$URL/update-password'); // 비밀번호 업데이트 API
+      final url = Uri.parse('$URL/update_password'); // 비밀번호 업데이트 API
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},

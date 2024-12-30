@@ -37,7 +37,7 @@ class _FindPasswordPageState extends State<FindPasswordPage> {
 
       try {
         final response = await http.post(
-          Uri.parse('$URL/password-email-auth'),
+          Uri.parse('$URL/password_email'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'email': email,
@@ -107,7 +107,7 @@ class _FindPasswordPageState extends State<FindPasswordPage> {
 
       try {
         final response = await http.post(
-          Uri.parse('$URL/password-verify-number'),
+          Uri.parse('$URL/password_verify_number'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'email': email,

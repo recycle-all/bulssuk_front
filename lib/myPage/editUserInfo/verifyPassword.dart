@@ -68,7 +68,7 @@ class _VerifyPasswordState extends State<VerifyPassword> {
       return;
     }
 
-    final url = Uri.parse('$URL/verify-password'); // 비밀번호 확인 API
+    final url = Uri.parse('$URL/verify_password'); // 비밀번호 확인 API
     try {
       final response = await http.post(
         url,

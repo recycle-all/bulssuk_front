@@ -34,7 +34,7 @@ class _FindIdPageState extends State<FindIdPage> {
       });
 
       final response = await http.post(
-        Uri.parse('$URL/find-id'),
+        Uri.parse('$URL/find_id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameController.text,
