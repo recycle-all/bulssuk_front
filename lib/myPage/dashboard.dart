@@ -131,11 +131,13 @@ class _DashboardState extends State<Dashboard> {
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.only(left: 10.0),
               children: [
-                _buildMenuItem(context, '오늘의 퀴즈', () {
-                  print("오늘의 퀴즈 클릭");
+                _buildMenuItem(context, '회원정보수정', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => VerifyPassword()),
+                  );
                 }),
-                _buildMenuItem(context, '출석체크', () {
-                  print("출석체크 클릭");
+                _buildMenuItem(context, '내 쿠폰함', () {
                 }),
                 _buildMenuItem(context, '1:1 문의하기', () {
                   Navigator.push(
@@ -147,12 +149,6 @@ class _DashboardState extends State<Dashboard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const FAQPage()),
-                  );
-                }),
-                _buildMenuItem(context, '회원정보수정', () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => VerifyPassword()),
                   );
                 }),
                 _buildMenuItem(context, '로그아웃', () => logout(context)),
