@@ -34,7 +34,7 @@ class _WordCloudSectionState extends State<WordCloudSection> {
 
   // Flask 서버에서 워드클라우드 이미지 가져오기
   Future<void> fetchWordCloud() async {
-    final String url = 'http://192.168.0.116:5001/api/wordcloud'; // Flask 서버 URL
+    final String url = 'http://192.168.0.116:5002/api/wordcloud'; // Flask 서버 URL
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -84,7 +84,7 @@ class _WordCloudSectionState extends State<WordCloudSection> {
 }
 
 // 리스트 영역 위젯
-class ListSection extends StatefulWidget { // <-- StatefulWidget으로 변경
+class ListSection extends StatefulWidget {
   @override
   _ListSectionState createState() => _ListSectionState();
 }
@@ -95,12 +95,14 @@ class _ListSectionState extends State<ListSection> {
 
   // Flask 서버에서 기사 데이터 가져오기
   Future<void> fetchArticles() async {
-    final String url = 'http://192.168.0.116:5001/api/news';
+    final String url = 'http://192.168.0.116:5002/api/news';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
+        final fetchedArticles = json.decode(response.body);
+        print("받은 기사 개수: ${fetchedArticles.length}"); // 디버깅: 받은 데이터 개수 출력
         setState(() {
-          articles = json.decode(response.body); // JSON 파싱
+          articles = fetchedArticles;
           isLoading = false;
         });
       } else {
@@ -141,29 +143,33 @@ class _ListSectionState extends State<ListSection> {
       );
     }
 
+    // 디버깅: 데이터 개수 확인
+    print("렌더링할 기사 개수: ${articles.length}");
+
     return ListView.builder(
-      itemCount: articles.length,
+      itemCount: articles.length, // 데이터 개수만큼 아이템 생성
       itemBuilder: (context, index) {
+        print("렌더링 중: $index 번째 기사 - ${articles[index]['title']}"); // 렌더링 확인
         final article = articles[index];
         return ListTile(
           leading: Text(
-            '${index + 1}', // 번호 추가
+            '${index + 1}',
             style: TextStyle(
-              fontSize: 18, // 번호 폰트 크기
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF12D3CF), // 번호 색상
+              color: Color(0xFF12D3CF),
             ),
           ),
           title: Text(
-            article['title'], // 기사 제목
+            article['title'],
             style: TextStyle(
-              color: Colors.black, // 제목 텍스트 색상 설정
-              fontSize: 14, // 제목 폰트 크기
+              color: Colors.black,
+              fontSize: 14,
             ),
-            overflow: TextOverflow.ellipsis, // 줄바꿈 방지 + 말줄임표 표시
-            maxLines: 1, // 최대 한 줄로 제한
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
-          onTap: () => _openUrl(article['link']), // 제목 클릭 시 URL 열기
+          onTap: () => _openUrl(article['link']),
         );
       },
     );
