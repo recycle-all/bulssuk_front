@@ -3,6 +3,7 @@ import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 class QuestionPage extends StatelessWidget {
@@ -56,6 +57,7 @@ class _QuestionFormState extends State<QuestionForm> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _storage = const FlutterSecureStorage(); // Secure Storage 인스턴스 생성
+  final URL = dotenv.env['URL'];
   bool _isLoading = false;
 
   Future<void> _submitInquiry() async {
@@ -70,9 +72,9 @@ class _QuestionFormState extends State<QuestionForm> {
       return;
     }
 
-    if (title.length > 20) {
+    if (title.length > 15) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제목은 20자 이내로 입력해주세요.')),
+        const SnackBar(content: Text('제목은 15자 이내로 입력해주세요.')),
       );
       return;
     }
@@ -92,7 +94,7 @@ class _QuestionFormState extends State<QuestionForm> {
       }
 
       // 서버 API URL
-      final url = Uri.parse('http://localhost:8080/inquiry');
+      final url = Uri.parse('$URL/inquiry');
 
       // 요청 데이터
       final Map<String, dynamic> requestData = {
@@ -150,37 +152,41 @@ class _QuestionFormState extends State<QuestionForm> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center, // 텍스트 박스 중앙 정렬
         children: [
           // 제목 입력 필드
-          TextField(
-            controller: _titleController,
-            maxLength: 20, // 최대 글자 수 제한
-            decoration: InputDecoration(
-              labelText: '제목을 입력해주세요. (20자 이내)',
-              labelStyle: const TextStyle(color: Colors.black),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF67EACA), width: 2),
+          Container(
+            width: double.infinity, // 부모 Column의 너비를 채우도록 설정
+            child: TextField(
+              controller: _titleController,
+              maxLength: 15, // 최대 글자 수 제한
+              decoration: InputDecoration(
+                labelText: '제목 입력',
+                labelStyle: const TextStyle(color: Colors.black),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFF67EACA), width: 2),
+                ),
               ),
             ),
           ),
           const SizedBox(height: 16.0),
 
           // 내용 입력 필드
-          Expanded(
-            flex: 3,
+          Container(
+            height: 300, // 원하는 높이로 설정
             child: TextField(
               controller: _contentController,
               maxLines: null,
               expands: true,
+              textAlignVertical: TextAlignVertical.top,
               decoration: InputDecoration(
-                labelText: '문의 내용을 입력해주세요.',
+                labelText: '문의 내용 입력',
                 labelStyle: const TextStyle(color: Colors.black),
                 contentPadding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 8.0),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -195,7 +201,7 @@ class _QuestionFormState extends State<QuestionForm> {
               ),
             ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 25.0),
 
           // 등록하기 버튼
           SizedBox(
@@ -218,7 +224,7 @@ class _QuestionFormState extends State<QuestionForm> {
         ],
       ),
     );
-  }
+   }
 }
 
 // 문의내역 확인
@@ -228,12 +234,14 @@ class QuestionHistory extends StatelessWidget {
   Future<List<Map<String, dynamic>>> fetchInquiries() async {
     const storage = FlutterSecureStorage();
     final token = await storage.read(key: 'jwt_token');
+    final URL = dotenv.env['URL'];
+
 
     if (token == null) {
       throw Exception('로그인이 필요합니다.');
     }
 
-    final url = Uri.parse('http://localhost:8080/get-inquiries');
+    final url = Uri.parse('$URL/get-inquiries');
     final response = await http.get(
       url,
       headers: {
@@ -346,7 +354,11 @@ class QuestionHistory extends StatelessWidget {
                             const SizedBox(height: 8.0),
                             Text(
                               inquiry['question_content'] ?? '내용 없음',
-                              style: const TextStyle(fontSize: 14.0),
+                              style: const TextStyle(
+                                fontSize: 14.0,
+                              ),
+                              textAlign: TextAlign.left, // 왼쪽 정렬
+                              overflow: TextOverflow.visible, // 줄바꿈 허용
                             ),
                             const SizedBox(height: 16.0),
                             const Text(
@@ -359,8 +371,13 @@ class QuestionHistory extends StatelessWidget {
                             ),
                             const SizedBox(height: 8.0),
                             Text(
-                              inquiry['answer_content'] ?? '답변이 아직 등록되지 않았습니다.',
-                              style: const TextStyle(fontSize: 14.0),
+                              inquiry['answer_content'] ??
+                                  '답변이 아직 등록되지 않았습니다.',
+                              style: const TextStyle(
+                                fontSize: 14.0,
+                              ),
+                              textAlign: TextAlign.left, // 왼쪽 정렬
+                              overflow: TextOverflow.visible, // 줄바꿈 허용
                             ),
                           ],
                         ),
