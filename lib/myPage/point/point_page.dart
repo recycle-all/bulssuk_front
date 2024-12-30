@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class PointPage extends StatefulWidget {
-  final int totalPoints; // 총 포인트를 받을 매개변수 추가
+  final int totalPoints;
 
   const PointPage({Key? key, required this.totalPoints}) : super(key: key);
 
@@ -99,24 +99,27 @@ class _PointPageState extends State<PointPage> {
 
   Widget _buildTotalPointsCard() {
     return Container(
-      width: double.infinity, // 가로 사이즈를 화면 크기로 설정
+      width: double.infinity, // 전체 화면 너비
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        elevation: 2.0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(12.0), // 카드 모서리 둥글게
         ),
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        elevation: 3.0,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('보유 포인트', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const Text(
+                '보유 포인트',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8.0),
               Text(
-                '${widget.totalPoints} p', // widget.totalPoints를 사용하여 총 포인트 표시
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                '${widget.totalPoints}p', // 총 포인트 표시
+                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold), // 더 큰 텍스트 크기
               ),
             ],
           ),
@@ -127,26 +130,70 @@ class _PointPageState extends State<PointPage> {
 
   Widget _buildPointHistoryList() {
     return Container(
-      width: double.infinity, // 가로 사이즈를 화면 크기로 설정
+      width: double.infinity, // 전체 화면 너비
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: ListView.builder(
         itemCount: _pointHistory.length,
         itemBuilder: (context, index) {
           final item = _pointHistory[index];
-          final isAdd = item['point_status'] == 'ADD'; // point_status 확인
+          final isAdd = item['point_status'] == 'ADD'; // 포인트 증가/감소 확인
           return Card(
-            margin: const EdgeInsets.all(8.0),
-            child: ListTile(
-              title: Text(item['point_reason']),
-              subtitle: Text(item['created_at']),
-              trailing: Text(
-                '${isAdd ? '+' : '-'}${item['point_amount']} p',
-                // ADD는 +, DELETE는 -
-                style: TextStyle(
-                  color: isAdd ? Colors.green : Colors.red,
-                  // ADD는 녹색, DELETE는 빨간색
-                  fontWeight: FontWeight.bold,
-                ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0), // 카드 모서리 둥글게
+            ),
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            elevation: 2.0,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0), // 내부 패딩 추가
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center, // 세로 가운데 정렬
+                    children: [
+                      Expanded(
+                        flex: 3, // 왼쪽 영역
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 5.0), // 왼쪽 공백 추가
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['point_reason'],
+                                style: const TextStyle(
+                                  fontSize: 18, // 포인트 사유 텍스트 크기
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 15.0), // 간격 추가
+                              Text(
+                                item['created_at'],
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey, // 날짜 텍스트 색상
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1, // 오른쪽 영역
+                        child: Align(
+                          alignment: Alignment.centerRight, // 오른쪽 가운데 정렬
+                          child: Text(
+                            '${isAdd ? '+' : '-'}${item['point_amount']}p',
+                            style: TextStyle(
+                              fontSize: 18, // 포인트 금액 텍스트 크기
+                              fontWeight: FontWeight.bold,
+                              color: isAdd ? Colors.green : Colors.red, // 색상 변경
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           );
