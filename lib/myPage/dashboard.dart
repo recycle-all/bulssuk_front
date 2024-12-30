@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../auth/login/login_page.dart';
 import '../widgets/top_nav.dart';
 import '../widgets/bottom_nav.dart';
 import 'editUserInfo/verifyPassword.dart';
 import 'inquiry&FAQ/FAQ_page.dart';
 import 'inquiry&FAQ/quesetion_page.dart';
-
+import 'myCoupon/coupon_page.dart';
+import 'point/point_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -17,12 +21,16 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final String? _url = dotenv.env['URL']; // 백엔드 API URL
   String _userName = 'Guest'; // 기본값 설정
+  int _totalPoints = 0; // 총 포인트 기본값
+  bool _isLoadingPoints = true; // 포인트 로딩 상태
 
   @override
   void initState() {
     super.initState();
     _loadUserName(); // Secure Storage에서 사용자 이름 로드
+    _fetchTotalPoints(); // 서버에서 총 포인트 가져오기
   }
 
   // Secure Storage에서 사용자 이름 로드
@@ -40,7 +48,38 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  // 로그아웃 기능
+  // 서버에서 총 포인트 가져오기
+  Future<void> _fetchTotalPoints() async {
+    try {
+      final token = await _storage.read(key: 'jwt_token'); // 저장된 JWT 토큰 읽기
+      final response = await http.get(
+        Uri.parse('$_url/total_point'), // 총 포인트 조회 API 엔드포인트
+        headers: {
+          'Authorization': 'Bearer $token', // Bearer 토큰 헤더 추가
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _totalPoints = data['totalPoints']; // 서버에서 가져온 총 포인트
+          _isLoadingPoints = false; // 로딩 완료
+        });
+      } else {
+        print('포인트 가져오기 실패: ${response.statusCode}');
+        setState(() {
+          _isLoadingPoints = false; // 로딩 실패로 상태 업데이트
+        });
+      }
+    } catch (e) {
+      print('포인트 로드 중 오류 발생: $e');
+      setState(() {
+        _isLoadingPoints = false; // 에러 발생 시 로딩 상태 업데이트
+      });
+    }
+  }
+
+  /// 로그아웃 기능
   Future<void> logout(BuildContext context) async {
     try {
       await _storage.deleteAll(); // 모든 Secure Storage 데이터 삭제
@@ -61,7 +100,9 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TopNavigationSection(title: '마이페이지'),
+      appBar: const TopNavigationSection(
+        title: '마이페이지',
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -115,15 +156,26 @@ class _DashboardState extends State<Dashboard> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 title: const Text('내 포인트'),
-                trailing: const Text(
-                  '710 p',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                trailing: _isLoadingPoints
+                    ? const CircularProgressIndicator() // 로딩 중
+                    : Text(
+                  '${_totalPoints}p',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 onTap: () {
-                  print("포인트 상세보기 클릭");
+                  // 포인트 사용 내역 페이지로 이동
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PointPage(
+                        totalPoints: _totalPoints, // 총 포인트 전달
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
+
             const SizedBox(height: 20),
             // 메뉴 리스트
             ListView(
@@ -138,6 +190,10 @@ class _DashboardState extends State<Dashboard> {
                   );
                 }),
                 _buildMenuItem(context, '내 쿠폰함', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CouponPage()),
+                  );
                 }),
                 _buildMenuItem(context, '1:1 문의하기', () {
                   Navigator.push(
