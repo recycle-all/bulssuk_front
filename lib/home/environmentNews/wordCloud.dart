@@ -34,7 +34,7 @@ class _WordCloudSectionState extends State<WordCloudSection> {
 
   // Flask 서버에서 워드클라우드 이미지 가져오기
   Future<void> fetchWordCloud() async {
-    final String url = 'http://192.168.0.116:5002/api/wordcloud'; // Flask 서버 URL
+    final String url = 'http://192.168.0.116:5001/api/wordcloud'; // Flask 서버 URL
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -95,12 +95,12 @@ class _ListSectionState extends State<ListSection> {
 
   // Flask 서버에서 기사 데이터 가져오기
   Future<void> fetchArticles() async {
-    final String url = 'http://192.168.0.116:5002/api/news';
+    final String url = 'http://192.168.0.116:5001/api/news';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final fetchedArticles = json.decode(response.body);
-        print("받은 기사 개수: ${fetchedArticles.length}"); // 디버깅: 받은 데이터 개수 출력
+        // print("받은 기사 개수: ${fetchedArticles.length}"); // 디버깅: 받은 데이터 개수 출력
         setState(() {
           articles = fetchedArticles;
           isLoading = false;
@@ -149,7 +149,7 @@ class _ListSectionState extends State<ListSection> {
     return ListView.builder(
       itemCount: articles.length, // 데이터 개수만큼 아이템 생성
       itemBuilder: (context, index) {
-        print("렌더링 중: $index 번째 기사 - ${articles[index]['title']}"); // 렌더링 확인
+        // print("렌더링 중: $index 번째 기사 - ${articles[index]['title']}"); // 렌더링 확인
         final article = articles[index];
         return ListTile(
           leading: Text(
