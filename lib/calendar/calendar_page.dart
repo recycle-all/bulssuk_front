@@ -17,8 +17,40 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime _focusedDay = DateTime.now(); // 현재 날짜
   DateTime? _selectedDay; // 선택된 날짜
   Set<DateTime> _checkedDays = {}; // 출석 체크된 날짜들
+  Set<DateTime> _alarmDays = {}; // 알람 있는 날짜들
+  Map<DateTime, dynamic> _alarmDetails = {}; // 알람 날짜별 상세 데이터 저장
   final FlutterSecureStorage _storage = FlutterSecureStorage(); // SecureStorage 초기화
   String? userId; // SecureStorage에서 불러올 user_id
+
+  // 알람 데이터 불러오기 함수
+  Future<void> _loadAlarms() async {
+    String? userId = await _storage.read(key: 'user_id');
+    if (userId == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:8080/alarm/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> alarms = jsonDecode(response.body);
+
+        setState(() {
+          _alarmDays = alarms.map((alarm) {
+            DateTime alarmDate = DateTime.parse(alarm['created_at']).toLocal();
+            _alarmDetails[alarmDate] = alarm; // 날짜별 알람 상세 정보 저장
+            return alarmDate;
+          }).toSet();
+        });
+      } else {
+        print('Failed to load alarms: ${response.body}');
+      }
+    } catch (e) {
+      print('Error loading alarms: $e');
+    }
+  }
+
+
 
   @override
   void initState() {
@@ -27,6 +59,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _selectedDay = DateTime.now(); // 오늘 날짜로 초기화
     _focusedDay = DateTime.now(); // 오늘 날짜로 초기화
     _loadUserId(); // SecureStorage에서 user_id 로드
+    _loadAlarms(); // 캘린더 알람 데이터 로드 추가
   }
 
   // SecureStorage에서 user_id 불러오기
@@ -132,6 +165,52 @@ class _CalendarPageState extends State<CalendarPage> {
     }
   }
 
+  // 알람 미리보기 모달 함수
+  Future<void> _showAlarmPreview(DateTime selectedDate) async {
+    if (_alarmDetails.containsKey(selectedDate)) {
+      final alarm = _alarmDetails[selectedDate];
+      showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+            title: Text('알람 미리보기'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('알림 이름: ${alarm['user_calendar_name']}'),
+                Text('반복 주기: ${alarm['user_calendar_every']}'),
+                Text('메모: ${alarm['user_calendar_memo']}'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('닫기'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => MemoPage(
+                        selectedDate: selectedDate,
+                        alarmId: alarm['id'], // 알람 ID 전달
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('수정'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -149,12 +228,18 @@ class _CalendarPageState extends State<CalendarPage> {
             calendarFormat: CalendarFormat.month,
             startingDayOfWeek: StartingDayOfWeek.sunday,
             locale: 'ko_KR', // 한국어 설정
-            onDaySelected: (selectedDay, focusedDay) {
+            onDaySelected: (selectedDay, focusedDay) async {
               setState(() {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
+
+              if (_alarmDays.contains(selectedDay)) {
+                await _showAlarmPreview(selectedDay);
+              }
             },
+
+
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);
             },
@@ -173,7 +258,30 @@ class _CalendarPageState extends State<CalendarPage> {
               ),
             ),
             calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, day, focusedDay) {
+                if (_alarmDays.contains(day)) {
+                  return Positioned(
+                    bottom: 4,
+                    child: Icon(
+                      Icons.notifications,
+                      size: 8,
+                      color: Colors.red, // 알람 있는 날짜 표시 색상
+                    ),
+                  );
+                }
+                return null;
+              },
               defaultBuilder: (context, day, focusedDay) {
+                if (_alarmDays.contains(day)) {
+                  return Positioned(
+                    bottom: 1,
+                    child: Icon(
+                      Icons.notifications,
+                      size: 16,
+                      color: Colors.red, // 알람이 있는 날짜의 아이콘 색상
+                    ),
+                  );
+                }
                 // 출석 체크된 날짜 우선 처리
                 if (_checkedDays.any((checkedDay) =>
                 day.year == checkedDay.year &&

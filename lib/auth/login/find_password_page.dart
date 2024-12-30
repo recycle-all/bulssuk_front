@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:bulssuk/auth/login/reset_password_page.dart';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FindPasswordPage extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class _FindPasswordPageState extends State<FindPasswordPage> {
   final _idController = TextEditingController();
   final _emailController = TextEditingController();
   final _codeController = TextEditingController();
+  final URL = dotenv.env['URL'];
 
   bool _isIdEmpty = false;
   bool _isEmailEmpty = false;
@@ -35,7 +37,7 @@ class _FindPasswordPageState extends State<FindPasswordPage> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:8080/password-email-auth'),
+          Uri.parse('$URL/password-email-auth'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'email': email,
@@ -105,7 +107,7 @@ class _FindPasswordPageState extends State<FindPasswordPage> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:8080/password-verify-number'),
+          Uri.parse('$URL/password-verify-number'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'email': email,

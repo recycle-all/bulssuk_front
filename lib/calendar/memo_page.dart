@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class MemoPage extends StatefulWidget {
   final DateTime selectedDate;
+  final String? alarmId; // 기존 알람 ID (수정 시 사용)
 
-  const MemoPage({Key? key, required this.selectedDate}) : super(key: key);
+  const MemoPage({Key? key, required this.selectedDate, this.alarmId}) : super(key: key);
 
   @override
   State<MemoPage> createState() => _MemoPageState();
@@ -16,6 +20,91 @@ class _MemoPageState extends State<MemoPage> {
   String _alarmFrequency = '매일'; // 초기 선택값
   bool _alarmEnabled = true;
   TextEditingController _memoController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.alarmId != null) {
+      _loadExistingAlarm(); // 알람 수정 시 기존 데이터 로드
+    }
+  }
+
+  // 기존 알람 데이터를 로드
+  Future<void> _loadExistingAlarm() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:8080/alarm/${widget.alarmId}'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _alarmName = data['user_calendar_name'];
+          _alarmFrequency = data['user_calendar_every'];
+          _memoController.text = data['user_calendar_memo'];
+          _alarmEnabled = data['status'];
+        });
+      } else {
+        print('Failed to load alarm: ${response.body}');
+      }
+    } catch (e) {
+      print('Error loading alarm: $e');
+    }
+  }
+
+  // 알람 저장 함수
+  Future<void> _saveMemo() async {
+    final storage = FlutterSecureStorage();
+    String? userId = await storage.read(key: 'user_id');
+
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    final alarmData = {
+      'user_id': userId,
+      'user_calendar_name': _alarmName,
+      'user_calendar_every': _alarmFrequency,
+      'user_calendar_memo': _memoController.text,
+      'selected_date': widget.selectedDate.toIso8601String(),
+      'status': _alarmEnabled,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8080/alarm'), // 백엔드의 알람 등록 API 확인
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(alarmData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('알람이 저장되었습니다.')),
+        );
+        Navigator.pop(context, true); // 저장 후 이전 화면으로 돌아가기
+      } else {
+        print('Failed to save alarm: ${response.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('알람 저장 실패: ${response.body}')),
+        );
+      }
+    } catch (e) {
+      print('Error saving alarm: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('서버 오류로 알람을 저장하지 못했습니다.')),
+      );
+    }
+  }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -33,154 +122,45 @@ class _MemoPageState extends State<MemoPage> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            Text(
-              '알림 이름',
-              style: TextStyle(
-                fontWeight: FontWeight.bold, // 글자 굵게
-                fontSize: 16.0, // 글자 크기
-              ),
-            ),
-            SizedBox(height: 12.0), // 텍스트와 텍스트 필드 사이 간격
+            _buildLabel('알림 이름'),
+            const SizedBox(height: 12),
             TextField(
-              decoration: InputDecoration(
-                hintText: '알림 이름을 입력하세요.',
-                hintStyle: TextStyle(
-                  color: Color(0xFFCCCCCC), // 힌트 텍스트 색상
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0), // 둥근 테두리
-                  borderSide: BorderSide(
-                    color: Color(0xFFCCCCCC), // 테두리 색상
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Color(0xFFCCCCCC), // 포커스된 상태의 테두리 색상
-                    width: 2.0, // 테두리 두께
-                  ),
-                ),
-                border: OutlineInputBorder(), // 기본 테두리 스타일
-              ),
+              decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
               onChanged: (value) {
                 setState(() {
                   _alarmName = value;
                 });
               },
             ),
-
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '알림 설정',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold, // 글자 굵게
-                    fontSize: 16.0, // 글자 크기
-                  ),
-                ),
-                CupertinoSwitch(
-                  value: _alarmEnabled,
-                  activeTrackColor: CupertinoColors.activeGreen, // 활성 상태 트랙 색상
-                  thumbColor: CupertinoColors.white, // 스위치 동그라미(Thumb)의 색상
-                  trackColor: CupertinoColors.inactiveGray, // 비활성 상태 트랙 색상
-                  onChanged: (value) {
-                    setState(() {
-                      _alarmEnabled = value;
-                    });
-                  },
-                ),
-              ],
+            _buildLabel('알림 설정'),
+            CupertinoSwitch(
+              value: _alarmEnabled,
+              activeTrackColor: CupertinoColors.activeGreen,
+              thumbColor: CupertinoColors.white,
+              trackColor: CupertinoColors.inactiveGray,
+              onChanged: (value) {
+                setState(() {
+                  _alarmEnabled = value;
+                });
+              },
             ),
-            const SizedBox(height: 20), // 스위치와 설정 요소 간 간격 설정
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0), // 좌우 여백
-                    child: _buildFrequencyButton('매일'),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0), // 좌우 여백
-                    child: _buildFrequencyButton('매주'),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6.0), // 좌우 여백
-                    child: _buildFrequencyButton('매월'),
-                  ),
-                ),
-              ],
-            ),
-
             const SizedBox(height: 20),
-            Text(
-              '알림 메모',
-              style: TextStyle(
-                fontWeight: FontWeight.bold, // 글자 굵게
-                fontSize: 16.0, // 글자 크기
-              ),
-            ),
-            SizedBox(height: 12.0), // 텍스트와 텍스트 필드 사이 간격
+            _buildFrequencyOptions(),
+            const SizedBox(height: 20),
+            _buildLabel('알림 메모'),
+            const SizedBox(height: 12),
             TextField(
               controller: _memoController,
               maxLines: 5,
-              decoration: InputDecoration(
-                hintText: '메모를 입력하세요.',
-                hintStyle: TextStyle(
-                  color: Color(0xFFCCCCCC), // 힌트 텍스트 색상
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0), // 둥근 테두리
-                  borderSide: BorderSide(
-                    color: Color(0xFFCCCCCC), // 테두리 색상
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Color(0xFFCCCCCC), // 포커스된 상태의 테두리 색상
-                    width: 2.0, // 테두리 두께
-                  ),
-                ),
-                border: OutlineInputBorder(), // 기본 테두리 스타일
-              ),
+              decoration: _buildInputDecoration('메모를 입력하세요.'),
             ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 버튼 배경색
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
-                      side: const BorderSide(color: Color(0xFFCCCCCC)), // 테두리 색상
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 12.0), // 버튼 내부 패딩
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('취소', style: TextStyle(color: Colors.black)),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, // 버튼 배경색
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
-                      side: const BorderSide(color: Color(0xFFCCCCCC)), // 테두리 색상
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 12.0), // 버튼 내부 패딩
-                  ),
-                  onPressed: () {
-                    _saveMemo();
-                  },
-                  child: const Text('저장', style: TextStyle(color: Colors.black)),
-                ),
+                _buildActionButton('취소', () => Navigator.pop(context)),
+                _buildActionButton('저장', _saveMemo),
               ],
             ),
           ],
@@ -189,37 +169,77 @@ class _MemoPageState extends State<MemoPage> {
     );
   }
 
-  // 알람 설정
-  Widget _buildFrequencyButton(String label) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _alarmFrequency == label ? Color(0xFFB0F4E6) : Colors.white,
-        foregroundColor: _alarmFrequency == label ? Colors.black : Colors.black,
-        // side: const BorderSide(color: Colors.black), // 테두리 색상
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0), // 라디우스 설정
-        ),
-      ),
-      onPressed: () {
-        setState(() {
-          _alarmFrequency = label;
-        });
-      },
-      child: Text(label),
+  // UI Helper: 라벨 빌더
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
     );
   }
 
-  void _saveMemo() {
-    // 메모 저장 로직
-    print('날짜: ${widget.selectedDate}');
-    print('알림 이름: $_alarmName');
-    print('설정: $_alarmEnabled');
-    print('반복 주기: $_alarmFrequency');
-    print('메모: ${_memoController.text}');
+  // UI Helper: InputDecoration 빌더
+  InputDecoration _buildInputDecoration(String hintText) {
+    return InputDecoration(
+      hintText: hintText,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Color(0xFFCCCCCC), width: 2.0),
+      ),
+      border: OutlineInputBorder(),
+    );
+  }
+
+  // UI Helper: 반복 주기 옵션 버튼 빌더
+  Widget _buildFrequencyOptions() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: ['매일', '매주', '매월']
+          .map((label) => Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _alarmFrequency == label
+                  ? const Color(0xFFB0F4E6)
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+            ),
+            onPressed: () {
+              setState(() {
+                _alarmFrequency = label;
+              });
+            },
+            child: Text(label),
+          ),
+        ),
+      ))
+          .toList(),
+    );
+  }
+
+  // UI Helper: 액션 버튼 빌더
+  Widget _buildActionButton(String label, VoidCallback onPressed) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          side: const BorderSide(color: Color(0xFFCCCCCC)),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 12.0),
+      ),
+      onPressed: onPressed,
+      child: Text(label, style: const TextStyle(color: Colors.black)),
+    );
   }
 
   String _getWeekday(int weekday) {
     const days = ['월', '화', '수', '목', '금', '토', '일'];
-    return days[weekday - 1]; // weekday는 1(월요일)부터 시작
+    return days[weekday - 1];
   }
 }

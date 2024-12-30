@@ -51,6 +51,7 @@ class QuestionForm extends StatefulWidget {
   _QuestionFormState createState() => _QuestionFormState();
 }
 
+// 문의하기
 class _QuestionFormState extends State<QuestionForm> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();

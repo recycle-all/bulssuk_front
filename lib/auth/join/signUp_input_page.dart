@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 
@@ -33,6 +33,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
   String? _idCheckMessage;
 
   final List<String> emailDomains = ['직접 입력', 'naver.com', 'daum.net'];
+  final URL = dotenv.env['URL'];
 
   @override
   void dispose() {
@@ -351,7 +352,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     final fullEmail = '$email@$domain';
 
                     try {
-                      final url = Uri.parse('http://localhost:8080/send_email');
+                      final url = Uri.parse('$URL/send_email');
                       final response = await http.post(
                         url,
                         headers: {'Content-Type': 'application/json'},
@@ -433,7 +434,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                       final fullEmail = '$email@$domain';
 
                       final emailRandomNumber = _authCodeController.text;
-                      final url = Uri.parse('http://localhost:8080/verify_email');
+                      final url = Uri.parse('$URL/verify_email');
                       try {
                         final response = await http.post(
                           url,
@@ -525,7 +526,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                       return;
                     }
                     print('아이디 중복 확인 요청: $userId');
-                    final url = Uri.parse('http://localhost:8080/id_check'); // Node.js 서버 URL
+                    final url = Uri.parse('$URL/id_check'); // Node.js 서버 URL
                     try {
                       final response = await http.post(
                         url,
@@ -721,7 +722,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     return;
                   }
 
-                  final url = Uri.parse('http://localhost:8080/sign_up');
+                  final url = Uri.parse('$URL/sign_up');
                   try {
                     final response = await http.post(
                       url,

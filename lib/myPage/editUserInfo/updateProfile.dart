@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_nav.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UpdateProfile extends StatefulWidget {
   final String email;
@@ -20,6 +21,7 @@ class UpdateProfile extends StatefulWidget {
 }
 
 class _UpdateProfileState extends State<UpdateProfile> {
+  final URL = dotenv.env['URL'];
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
   TextEditingController();
@@ -50,7 +52,7 @@ class _UpdateProfileState extends State<UpdateProfile> {
     }
 
     try {
-      final url = Uri.parse('http://localhost:8080/update-password'); // 비밀번호 업데이트 API
+      final url = Uri.parse('$URL/update-password'); // 비밀번호 업데이트 API
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},

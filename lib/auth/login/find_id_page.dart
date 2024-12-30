@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:bulssuk/auth/login/find_id_complete_page.dart';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class FindIdPage extends StatefulWidget {
   @override
@@ -12,6 +13,7 @@ class FindIdPage extends StatefulWidget {
 class _FindIdPageState extends State<FindIdPage> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final URL = dotenv.env['URL'];
   bool _isNameEmpty = false;
   bool _isEmailEmpty = false;
   bool _isLoading = false;
@@ -32,7 +34,7 @@ class _FindIdPageState extends State<FindIdPage> {
       });
 
       final response = await http.post(
-        Uri.parse('http://localhost:8080/find-id'),
+        Uri.parse('$URL/find-id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'name': _nameController.text,

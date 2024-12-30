@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final String userId;
@@ -15,6 +16,7 @@ class ResetPasswordPage extends StatefulWidget {
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final URL = dotenv.env['URL'];
 
   bool _isPasswordEmpty = false;
   bool _isConfirmPasswordEmpty = false;
@@ -42,7 +44,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/reset-password'),
+        Uri.parse('$URL/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'user_id': widget.userId,

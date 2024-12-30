@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_nav.dart';
 import 'updateProfile.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class VerifyPassword extends StatefulWidget {
   const VerifyPassword({Key? key}) : super(key: key);
@@ -15,6 +16,7 @@ class VerifyPassword extends StatefulWidget {
 class _VerifyPasswordState extends State<VerifyPassword> {
   final TextEditingController _passwordController = TextEditingController();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final URL = dotenv.env['URL'];
   String? _errorMessage;
   String? _userId; // 로그인한 사용자 ID
   String? _userName; // 로그인한 사용자 이름
@@ -66,7 +68,7 @@ class _VerifyPasswordState extends State<VerifyPassword> {
       return;
     }
 
-    final url = Uri.parse('http://localhost:8080/verify-password'); // 비밀번호 확인 API
+    final url = Uri.parse('$URL/verify-password'); // 비밀번호 확인 API
     try {
       final response = await http.post(
         url,

@@ -6,6 +6,7 @@ import 'find_id_page.dart'; // 아이디 찾기 페이지 import
 import 'find_password_page.dart'; // 비밀번호 찾기 페이지 import
 import '../join/agreement_page.dart'; // 회원가입 페이지 import
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -16,10 +17,11 @@ class _LoginPageState extends State<LoginPage> {
   final _storage = const FlutterSecureStorage(); // Secure Storage 인스턴스 생성
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final URL = dotenv.env['URL'];
   bool _isLoginFailed = false; // 로그인 실패 상태
 
   Future<void> login() async {
-    final url = Uri.parse('http://localhost:8080/user_login'); // 서버 로그인 엔드포인트
+    final url = Uri.parse('$URL/user_login'); // 서버 로그인 엔드포인트
 
     try {
       final response = await http.post(
