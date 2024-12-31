@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MemoPage extends StatefulWidget {
   final DateTime selectedDate;
@@ -15,12 +14,11 @@ class MemoPage extends StatefulWidget {
   @override
   State<MemoPage> createState() => _MemoPageState();
 }
-final URL = dotenv.env['URL'];
 
 class _MemoPageState extends State<MemoPage> {
   String _alarmName = '';
   String _alarmFrequency = '매일'; // 초기 선택값
-  bool _alarmEnabled = true;
+  bool _alarmEnabled = true; // 알림 활성화 상태
   TextEditingController _memoController = TextEditingController();
 
   @override
@@ -35,7 +33,7 @@ class _MemoPageState extends State<MemoPage> {
   Future<void> _loadExistingAlarm() async {
     try {
       final response = await http.get(
-        Uri.parse('$URL/alarm/${widget.alarmId}'),
+        Uri.parse('http://localhost:8001/alarm/${widget.alarmId}'),
       );
 
       if (response.statusCode == 200) {
@@ -44,7 +42,7 @@ class _MemoPageState extends State<MemoPage> {
           _alarmName = data['user_calendar_name'];
           _alarmFrequency = data['user_calendar_every'];
           _memoController.text = data['user_calendar_memo'];
-          _alarmEnabled = data['status'];
+          _alarmEnabled = data['user_calendar_list']; // 기존 알림 상태 로드
         });
       } else {
         print('Failed to load alarm: ${response.body}');
@@ -69,18 +67,21 @@ class _MemoPageState extends State<MemoPage> {
       return;
     }
 
+    // 날짜를 YYYY-MM-DD 형식으로 변환
+    String formattedDate = '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
+
     final alarmData = {
       'user_id': userId,
       'user_calendar_name': _alarmName,
       'user_calendar_every': _alarmFrequency,
       'user_calendar_memo': _memoController.text,
-      'selected_date': widget.selectedDate.toIso8601String(),
-      'status': _alarmEnabled,
+      'user_calendar_date': formattedDate, // 날짜 추가
+      'user_calendar_list': _alarmEnabled, // 알림 활성화 상태 전송
     };
 
     try {
       final response = await http.post(
-        Uri.parse('$URL/alarm'), // 백엔드의 알람 등록 API 확인
+        Uri.parse('http://localhost:8001/alarm'), // 백엔드의 알람 등록 API 확인
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(alarmData),
       );
@@ -91,7 +92,6 @@ class _MemoPageState extends State<MemoPage> {
         );
         Navigator.pop(context, true); // 저장 후 이전 화면으로 돌아가기
       } else {
-        print('Failed to save alarm: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('알람 저장 실패: ${response.body}')),
         );
@@ -103,9 +103,6 @@ class _MemoPageState extends State<MemoPage> {
       );
     }
   }
-
-
-
 
 
   @override
@@ -143,7 +140,7 @@ class _MemoPageState extends State<MemoPage> {
               trackColor: CupertinoColors.inactiveGray,
               onChanged: (value) {
                 setState(() {
-                  _alarmEnabled = value;
+                  _alarmEnabled = value; // 토글 상태 업데이트
                 });
               },
             ),

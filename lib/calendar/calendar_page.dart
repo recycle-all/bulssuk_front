@@ -10,6 +10,7 @@ import '../../widgets/bottom_nav.dart'; // 하단 네비게이션 가져오기
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // SecureStorage import
 import 'memoModal_page.dart'; // 새로 만든 모달 페이지 import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class CalendarPage extends StatefulWidget {
   @override
   _CalendarPageState createState() => _CalendarPageState();
@@ -30,7 +31,7 @@ class _CalendarPageState extends State<CalendarPage> {
   final Map<int, String> _monthImages = {}; // 월별 이미지 캐시
   List<Map<String, dynamic>> _events = []; // 서버에서 가져온 이벤트 데이터 저장
   final URL = dotenv.env['URL'];
-  
+
   @override
   void initState() {
     super.initState();
