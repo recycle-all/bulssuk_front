@@ -3,6 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'tree_coupon_page.dart';
 import '../widgets/top_nav.dart';
 import '../widgets/bottom_nav.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class TreePage extends StatefulWidget {
   @override
@@ -20,9 +24,56 @@ class _TreePageState extends State<TreePage> {
   int currentLevel = 0; // 현재 레벨 (0: 씨앗, 1: 새싹, 2: 나뭇가지, 3: 나무, 4: 꽃)
   String selectedCoupon = "플라스틱 방앗간 제품 교환권"; // 기본 선택 값
   List<String> myCoupons = []; // 쿠폰 목록 저장
+  // 포인트 조회
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final String? _url = dotenv.env['URL']; // 백엔드 API URL
+  int _points = 0; // 초기 포인트
+  bool _isLoadingPoints = true; // 포인트 로딩 상태
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTotalPoints(); // 서버에서 총 포인트 가져오기
+  }
+
+  // 서버에서 총 포인트 가져오기
+  Future<void> _fetchTotalPoints() async {
+    try {
+      final token = await _storage.read(key: 'jwt_token'); // 저장된 JWT 토큰 읽기
+      final response = await http.get(
+        Uri.parse('$_url/total_point'), // 총 포인트 조회 API 엔드포인트
+        headers: {
+          'Authorization': 'Bearer $token', // Bearer 토큰 헤더 추가
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _points = data['totalPoints']; // 서버에서 가져온 총 포인트
+          _isLoadingPoints = false; // 로딩 완료
+        });
+      } else {
+        print('포인트 가져오기 실패: ${response.statusCode}');
+        setState(() {
+          _isLoadingPoints = false; // 로딩 실패로 상태 업데이트
+        });
+      }
+    } catch (e) {
+      print('포인트 로드 중 오류 발생: $e');
+      setState(() {
+        _isLoadingPoints = false; // 에러 발생 시 로딩 상태 업데이트
+      });
+    }
+  }
+
 
   // 쿠폰 개수를 동적으로 계산
   int get couponCount => myCoupons.length;
+
+  final URL = dotenv.env['URL'];
+
+
 
   void showLevelUpModal() {
     showDialog(
@@ -472,7 +523,7 @@ class _TreePageState extends State<TreePage> {
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Text(
-                        "$points p",
+                        "$_points p",
                         style: TextStyle(fontSize: 14),
                       ),
                     ),
