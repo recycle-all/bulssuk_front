@@ -7,6 +7,7 @@ import 'memo_page.dart';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import '../../widgets/bottom_nav.dart'; // 하단 네비게이션 가져오기
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // SecureStorage import
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CalendarPage extends StatefulWidget {
   @override
@@ -29,7 +30,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8080/alarm/$userId'),
+        Uri.parse('$URL/alarm/$userId'),
       );
 
       if (response.statusCode == 200) {
@@ -61,6 +62,7 @@ class _CalendarPageState extends State<CalendarPage> {
     _loadUserId(); // SecureStorage에서 user_id 로드
     _loadAlarms(); // 캘린더 알람 데이터 로드 추가
   }
+  final URL = dotenv.env['URL'];
 
   // SecureStorage에서 user_id 불러오기
   Future<void> _loadUserId() async {
@@ -84,7 +86,7 @@ class _CalendarPageState extends State<CalendarPage> {
     if (userId == null) return; // userId가 없으면 요청 중지
 
     try {
-      final response = await http.get(Uri.parse('http://localhost:8080/attendance/$userId')); // user_id 사용
+      final response = await http.get(Uri.parse('$URL/attendance/$userId')); // user_id 사용
 
       if (response.statusCode == 200) {
         final List<dynamic> history = jsonDecode(response.body);
@@ -121,7 +123,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/attendance'),
+        Uri.parse('$URL/attendance'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'user_id': userId}), // user_id 사용
       );
