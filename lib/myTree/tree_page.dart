@@ -12,6 +12,7 @@ class TreePage extends StatefulWidget {
   @override
   _TreePageState createState() => _TreePageState();
 }
+final URL = dotenv.env['URL'];
 
 class _TreePageState extends State<TreePage> {
   int points = 5000; // 초기 포인트
@@ -70,10 +71,6 @@ class _TreePageState extends State<TreePage> {
 
   // 쿠폰 개수를 동적으로 계산
   int get couponCount => myCoupons.length;
-
-  final URL = dotenv.env['URL'];
-
-
 
   void showLevelUpModal() {
     showDialog(
