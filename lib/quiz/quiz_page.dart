@@ -173,7 +173,7 @@ class _QuizPageState extends State<QuizPage> {
     final currentQuiz = _quizzes[_currentQuizIndex];
     final isCorrect = userAnswer == currentQuiz['answer'];
 
-// SQLite에 진행 상황 저장
+    // SQLite에 진행 상황 저장
     final userNo = await widget.storage.read(key: 'user_no') ?? 'unknown_user';
     await QuizDatabase.instance.saveProgress(
       userNo,
@@ -181,7 +181,7 @@ class _QuizPageState extends State<QuizPage> {
       isCorrect,
     );
 
-// 서버로 진행 상황 전송
+    // 서버로 진행 상황 전송
     final url = Uri.parse('$URL/quiz/submit_quiz');
 
     try {
@@ -204,7 +204,12 @@ class _QuizPageState extends State<QuizPage> {
       print("퀴즈 진행 상황 서버 전송 중 오류 발생: $e");
     }
 
-// UI 업데이트
+    // 포인트 추가: 정답일 경우만
+    if (isCorrect) {
+      await addPoint(userNo); // 추가된 함수 호출
+    }
+
+    // UI 업데이트
     setState(() {
       _isAnswered = true; // 답변 여부 상태 변경
       _resultMessage = isCorrect
@@ -212,7 +217,6 @@ class _QuizPageState extends State<QuizPage> {
           : "틀렸습니다! 정답은 ${currentQuiz['answer']} 입니다. ❌";
     });
   }
-
 
 // 다음 퀴즈로 이동
   void moveToNextQuiz() {
@@ -227,6 +231,30 @@ class _QuizPageState extends State<QuizPage> {
         _resultMessage = "모든 퀴즈를 완료했습니다!";
       }
     });
+  }
+
+  // 정답시 포인트 지급
+  Future<void> addPoint(String userNo) async {
+    final url = Uri.parse('$URL/quiz/addPoint'); // 백엔드의 addPoint API 경로
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_no': userNo, // 사용자 번호
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = jsonDecode(response.body);
+        print("포인트 추가 성공: ${responseBody['message']}, 총 포인트: ${responseBody['newTotal']}");
+      } else {
+        print("포인트 추가 실패: 상태 코드 ${response.statusCode}, 응답: ${response.body}");
+      }
+    } catch (e) {
+      print("포인트 추가 중 오류 발생: $e");
+    }
   }
 
   @override
