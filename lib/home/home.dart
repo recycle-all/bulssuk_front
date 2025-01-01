@@ -142,7 +142,9 @@ class _HomePageState extends State<HomePage> {
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: [
     ElevatedButton(
-    onPressed: () {},
+    onPressed: () {
+      Navigator.pushNamed(context, '/quiz'); // /quiz로 이동
+    },
     style: ElevatedButton.styleFrom(
     backgroundColor: const Color(0xFFFCF9EC),
     foregroundColor: Colors.black,
