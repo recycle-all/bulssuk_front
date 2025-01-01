@@ -4,7 +4,9 @@ import 'home/home.dart';
 import 'auth/login/login_page.dart';
 import 'myPage/dashboard.dart';
 import 'calendar/calendar_page.dart';
-
+import 'quiz/quiz_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+final _storage = const FlutterSecureStorage(); // Secure Storage 인스턴스 생성
 void main() async {
   // 비동기 작업 초기화
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +34,7 @@ class MyApp extends StatelessWidget {
         '/home': (context) => HomePage(), // 홈 화면 경로
         '/dashboard': (context) => Dashboard(), // Dashboard 경로
         '/calendar': (context) => CalendarPage(), // 캘린더 페이지 경로
+        '/quiz': (context) => QuizPage(storage: _storage), // 퀴즈 페이지 경로
       },
     );
   }
