@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
         final userId = data['userId'];
         final name = data['name'];
         final email = data['email'];
-
+        final userNo = data['userNo'];
         if (name == null || email == null || userId == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("서버로부터 불완전한 데이터를 받았습니다.")),
@@ -54,13 +54,13 @@ class _LoginPageState extends State<LoginPage> {
         await _storage.write(key: 'user_id', value: userId);
         await _storage.write(key: 'user_name', value: name);
         await _storage.write(key: 'user_email', value: email);
-
+        await _storage.write(key: 'user_no', value: userNo.toString());
         // 저장된 데이터 디버깅 출력
         print('Secure Storage 저장 완료:');
         print('User ID: $userId');
         print('Name: $name');
         print('Email: $email');
-
+        print('User No: $userNo');
         // 로그인 성공 메시지
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("로그인 성공!")),
