@@ -7,7 +7,7 @@ import 'find_password_page.dart'; // 비밀번호 찾기 페이지 import
 import '../join/agreement_page.dart'; // 회원가입 페이지 import
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:bulssuk/calendar/alarm_page.dart';
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -65,6 +65,13 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("로그인 성공!")),
         );
+
+
+        // **로그인 성공 후 알림 예약 실행**
+        await requestNotificationPermission(); // 알림 권한 요청
+        await initializeAlarmNotifications();  // 알림 초기화
+        await scheduleUserAlarms(userNo);      // 알림 예약
+        print('알림 예약 완료!');
 
         // 홈 화면으로 이동
         Navigator.pushReplacementNamed(context, '/home');
