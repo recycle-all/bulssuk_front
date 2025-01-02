@@ -24,8 +24,12 @@ class QuestionPage extends StatelessWidget {
               ),
               const TabBar(
                 indicatorColor: Color(0xFF67EACA),
+                indicatorWeight: 1.0, // 밑줄 두께
                 labelColor: Colors.black,
                 unselectedLabelColor: Colors.grey,
+                labelStyle: TextStyle(
+                  fontSize: 16,
+                ),
                 tabs: [
                   Tab(text: '문의하기'),
                   Tab(text: '문의내역'),
