@@ -580,16 +580,20 @@ class _CalendarPageState extends State<CalendarPage> {
                       final hasEvent = _events.any((event) =>
                       event['date'] == strippedDay);
                       if (hasChecked) {
-                        return Positioned(
-                          bottom: 4,
-                          child: Icon(
-                            Icons.circle,
-                            size: 6,
-                            color: Color(0xFFB0F4E6), // 민트색 점
+                        return Container(
+                          margin: const EdgeInsets.all(4.0),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFB0F4E6), // 민트색 배경
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${day.day}',
+                              style: const TextStyle(color: Colors.black), // 텍스트 색상
+                            ),
                           ),
                         );
                       }
-
                       if (hasMemo) {
                         return Positioned(
                           bottom: 4,
