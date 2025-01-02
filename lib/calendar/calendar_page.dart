@@ -575,10 +575,20 @@ class _CalendarPageState extends State<CalendarPage> {
                     },
                     markerBuilder: (context, day, focusedDay) {
                       final strippedDay = _stripTime(day);
-
+                      final hasChecked = _checkedDays.contains(strippedDay); // 출석 체크 확인
                       final hasMemo = memoDates.contains(strippedDay);
                       final hasEvent = _events.any((event) =>
                       event['date'] == strippedDay);
+                      if (hasChecked) {
+                        return Positioned(
+                          bottom: 4,
+                          child: Icon(
+                            Icons.circle,
+                            size: 6,
+                            color: Color(0xFFB0F4E6), // 민트색 점
+                          ),
+                        );
+                      }
 
                       if (hasMemo) {
                         return Positioned(
@@ -764,7 +774,10 @@ class _CalendarPageState extends State<CalendarPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => MemoPage(selectedDate: memoDate),
+              builder: (context) => MemoPage(
+                selectedDate: memoDate,
+                onSave: _loadAlarms, // onSave에 _loadAlarms 전달
+              ),
             ),
           );
         },
