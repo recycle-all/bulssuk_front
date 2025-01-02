@@ -185,13 +185,15 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       // 오늘의 퀴즈 버튼
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/quiz'); // /quiz로 이동
+                        },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFCF9EC), // 버튼 배경색
-                          foregroundColor: Colors.black, // 버튼 글자색
+                          backgroundColor: const Color(0xFFFCF9EC),
+                          foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16), // 버튼 모서리 둥글기
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         child: const Text('오늘의 퀴즈'),
