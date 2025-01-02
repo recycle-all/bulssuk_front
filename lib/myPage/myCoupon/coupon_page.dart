@@ -12,16 +12,17 @@ class CouponPage extends StatefulWidget {
   State<CouponPage> createState() => _CouponPageState();
 }
 
-class _CouponPageState extends State<CouponPage> {
+class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final String? _url = dotenv.env['URL'];
+  late TabController _tabController; // TabController 추가
   List<Map<String, dynamic>> _coupons = [];
   bool _isLoading = true;
-  int _selectedTabIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this); // TabController 초기화
     _fetchCoupons();
   }
 
@@ -74,67 +75,34 @@ class _CouponPageState extends State<CouponPage> {
         DateTime.parse(coupon['expirationdate']).isBefore(now))
         .toList();
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight + 48), // AppBar + TabBar 높이
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const TopNavigationSection(
-                title: '내 쿠폰함',
-              ),
-              const TabBar(
-                indicatorColor: Color(0xFF67EACA), // 밑줄 색상
-                indicatorWeight: 1.0, // 밑줄 두께
-                labelColor: Colors.black, // 선택된 탭 텍스트 색상
-                unselectedLabelColor: Colors.grey, // 선택되지 않은 탭 텍스트 색상
-                labelStyle: TextStyle(
-                  fontSize: 16,
-                ),
-                tabs: [
-                  Tab(text: '사용 가능한 쿠폰'),
-                  Tab(text: '지난 쿠폰'),
-                ],
-              ),
-            ],
-          ),
-        ),
-        body: TabBarView(
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight + 48),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildCouponList(availableCoupons),
-            _buildCouponList(expiredCoupons),
+            const TopNavigationSection(title: '내 쿠폰함'),
+            TabBar(
+              controller: _tabController, // TabController 연결
+              indicatorColor: const Color(0xFF67EACA),
+              indicatorWeight: 1.0,
+              labelColor: Colors.black,
+              unselectedLabelColor: Colors.grey,
+              labelStyle: const TextStyle(fontSize: 16),
+              tabs: [
+                Tab(text: '사용 가능한 쿠폰 (${availableCoupons.length})'),
+                Tab(text: '지난 쿠폰 (${expiredCoupons.length})'),
+              ],
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildTabButton('사용 가능한 쿠폰', 0),
-        _buildTabButton('지난 쿠폰', 1),
-      ],
-    );
-  }
-
-  Widget _buildTabButton(String title, int index) {
-    return Expanded(
-      child: TextButton(
-        onPressed: () => setState(() => _selectedTabIndex = index),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: _selectedTabIndex == index ? Colors.black : Colors.grey,
-            decoration:
-            _selectedTabIndex == index ? TextDecoration.underline : null,
-          ),
-        ),
+      body: TabBarView(
+        controller: _tabController, // TabController 연결
+        children: [
+          _buildCouponList(availableCoupons),
+          _buildCouponList(expiredCoupons),
+        ],
       ),
     );
   }
@@ -161,7 +129,7 @@ class _CouponPageState extends State<CouponPage> {
           margin: const EdgeInsets.only(bottom: 16.0),
           elevation: 2.0,
           child: Padding(
-            padding: const EdgeInsets.all(16.0), // 전체 패딩 추가
+            padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
                 ClipRRect(
@@ -178,7 +146,7 @@ class _CouponPageState extends State<CouponPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 30.0), // 이미지와 텍스트 사이 간격 조정
+                const SizedBox(width: 30.0),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +158,7 @@ class _CouponPageState extends State<CouponPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 15.0), // 이름과 만료일 간 간격 조정
+                      const SizedBox(height: 15.0),
                       Text(
                         '만료일: ${coupon['expirationdate'] ?? ''}',
                         style: const TextStyle(
@@ -208,4 +176,10 @@ class _CouponPageState extends State<CouponPage> {
       },
     );
   }
- }
+
+  @override
+  void dispose() {
+    _tabController.dispose(); // TabController 해제
+    super.dispose();
+  }
+}
