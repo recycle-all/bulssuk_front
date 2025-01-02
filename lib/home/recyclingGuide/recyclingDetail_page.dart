@@ -1,25 +1,69 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+final URL = dotenv.env['URL'];
 
-class RecyclingDetailPage extends StatelessWidget {
-  final String category;
+class RecyclingDetailPage extends StatefulWidget {
+  final int subcategoryId;
+  final String subcategoryName;
 
-  const RecyclingDetailPage({Key? key, required this.category}) : super(key: key);
+  const RecyclingDetailPage({required this.subcategoryId, required this.subcategoryName, Key? key}) : super(key: key);
+
+  @override
+  _RecyclingDetailPageState createState() => _RecyclingDetailPageState();
+}
+
+class _RecyclingDetailPageState extends State<RecyclingDetailPage> {
+  Map<String, dynamic>? detail;
+  bool isLoading = true;
+
+  // 상세 데이터를 API로 가져오기
+  Future<void> fetchDetail() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$URL/detail/${widget.subcategoryId}'),
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          detail = json.decode(response.body).first; // API 응답에서 첫 번째 데이터 사용
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load details');
+      }
+    } catch (e) {
+      print('Error fetching details: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDetail();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavigationSection(
-        title: '분리수거 가이드 - $category', // 동적으로 제목 설정
+      appBar: AppBar(
+        title: Text(widget.subcategoryName), // 전달받은 카테고리 이름을 제목으로 설정
       ),
-      body: Padding(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: Text(
-            'This is the detail page for $category.',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (detail != null) ...[
+              Image.network(detail!['guide_img'], fit: BoxFit.cover),
+              const SizedBox(height: 10),
+              Text(detail!['guide_content'], style: const TextStyle(fontSize: 16)),
+            ] else
+              const Text('No details available'),
+          ],
         ),
       ),
     );
