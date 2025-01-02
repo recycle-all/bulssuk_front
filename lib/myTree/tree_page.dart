@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../myPage/myCoupon/coupon_page.dart'; // 쿠폰 페이지 import
 import 'tree_api_service.dart';
-import 'tree_coupon_page.dart';
 import 'tree_modals.dart';
 import 'tree_level_manage.dart';
 import '../widgets/top_nav.dart';
@@ -12,14 +12,16 @@ class TreePage extends StatefulWidget {
 }
 
 class _TreePageState extends State<TreePage> {
-  int points = initialPoints;
-  int availableCouponCount = 0;
-  int currentLevel = 0;
-  double progress = 0;
-  String treeState = initialTreeState;
-  String message = initialMessage;
-  String treeImage = initialTreeImage;
-  List<String> myCoupons = [];
+  int points = 100; // 현재 보유 포인트
+  int availableCouponCount = 0; // 사용 가능한 쿠폰 수
+  int currentLevel = 0; // 현재 레벨
+  double levelProgress = 0.0; // 상태바 진행도 (0 ~ 1)
+  String treeState = initialTreeState; // 나무 상태
+  String message = initialMessage; // 상태 메시지
+  String treeImage = initialTreeImage; // 나무 이미지
+  List<String> myCoupons = []; // 쿠폰 목록
+
+  final List<int> levelPoints = [0, 80, 240, 720, 2160]; // 레벨별 포인트 범위
 
   @override
   void initState() {
@@ -40,15 +42,48 @@ class _TreePageState extends State<TreePage> {
     });
   }
 
+  // 상태바 진행도 증가
+  void increaseProgress(int cost) {
+    setState(() {
+      int rangeStart = levelPoints[currentLevel];
+      int rangeEnd = levelPoints[currentLevel + 1];
+      double progressIncrease = cost / (rangeEnd - rangeStart);
 
+      levelProgress += progressIncrease;
+
+      // 초과된 진행도를 처리
+      while (levelProgress >= 1.0 && currentLevel < levelPoints.length - 2) {
+        double overflowPoints = (levelProgress - 1.0) * (rangeEnd - rangeStart);
+        levelProgress = 0.0; // 현재 레벨 진행도 초기화
+
+        // 레벨업 모달 표시
+        showLevelUpModal(context, currentLevel, (newLevel) {
+          setState(() {
+            currentLevel = newLevel; // 레벨 업데이트
+            rangeStart = levelPoints[currentLevel];
+            rangeEnd = levelPoints[currentLevel + 1];
+
+            // 초과된 포인트를 다음 레벨 진행도로 이어가기
+            levelProgress = overflowPoints / (rangeEnd - rangeStart);
+
+            // 나무 상태 업데이트
+            treeState = getTreeState(currentLevel);
+            message = getTreeMessage(currentLevel);
+            treeImage = getTreeImage(currentLevel);
+          });
+        });
+        break; // 한 번에 한 단계씩 레벨업
+      }
+    });
+  }
+
+  // 액션 수행
   void handleAction(String action, int cost) {
-    print("현재 포인트: $points, 필요한 포인트: $cost"); // 디버깅용
     if (points < cost) {
-      // 포인트가 부족한 경우 "포인트가 부족합니다" 모달 호출
-      print("포인트 부족!"); // 디버깅용
-      showInsufficientPointsModal(context); // 포인트 부족 안내
+      // 포인트 부족 모달
+      showInsufficientPointsModal(context);
     } else {
-      // 포인트가 충분한 경우 확인 모달 표시
+      // 포인트 충분하면 액션 수행
       showActionModal(
         context,
         action: action,
@@ -56,51 +91,10 @@ class _TreePageState extends State<TreePage> {
         onConfirm: () {
           setState(() {
             points -= cost; // 포인트 차감
-            progress += cost / maxPoints; // 진행도 업데이트
-            if (progress >= levelPoints[currentLevel] / maxPoints) {
-              showLevelUpModal(context, currentLevel, (newLevel) {
-                setState(() {
-                  currentLevel = newLevel;
-                  treeState = getTreeState(newLevel);
-                  message = getTreeMessage(newLevel);
-                  treeImage = getTreeImage(newLevel);
-                  if (currentLevel == 4) {
-                    showCompletionModal(context, myCoupons, (coupon) {
-                      setState(() => myCoupons.add(coupon));
-                    });
-                  }
-                });
-              });
-            }
+            increaseProgress(cost); // 상태바 진행
           });
         },
       );
-    }
-  }
-
-
-
-  void usePoints(int cost) {
-    if (points >= cost) {
-      setState(() {
-        points -= cost;
-        progress += cost / maxPoints;
-        if (progress >= levelPoints[currentLevel] / maxPoints) {
-          showLevelUpModal(context, currentLevel, (newLevel) {
-            setState(() {
-              currentLevel = newLevel;
-              treeState = getTreeState(newLevel);
-              message = getTreeMessage(newLevel);
-              treeImage = getTreeImage(newLevel);
-              if (currentLevel == 4) {
-                showCompletionModal(context, myCoupons, (coupon) {
-                  setState(() => myCoupons.add(coupon));
-                });
-              }
-            });
-          });
-        }
-      });
     }
   }
 
@@ -113,68 +107,11 @@ class _TreePageState extends State<TreePage> {
         child: Column(
           children: [
             SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TreeCouponPage(
-                            couponCount: myCoupons.length, // 쿠폰 개수 전달
-                            myCoupons: myCoupons,
-                          ), // 쿠폰 리스트 전달
-                        ),
-                      );
-                    },
-                    child: Row(
-                      children: [
-                        Icon(Icons.card_giftcard, size: 20, color: Colors.black),
-                        SizedBox(width: 5),
-                        Text("내 쿠폰함", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        SizedBox(width: 10),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Text("${availableCouponCount}개", style: TextStyle(fontSize: 14)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Text("현재 내 포인트", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      SizedBox(width: 10),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Text("$points p", style: TextStyle(fontSize: 14)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            buildTopInfoRow(),
             SizedBox(height: 70),
             buildProgressBar(context),
             SizedBox(height: 10),
-            Container(
-              padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
-              decoration: BoxDecoration(
-                color: Color(0xFFFCF9EC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(message, style: TextStyle(fontSize: 18)),
-            ),
+            buildMessageBox(),
             SizedBox(height: 40),
             Image.asset(treeImage, height: 150),
             buildActionButtons(),
@@ -185,14 +122,65 @@ class _TreePageState extends State<TreePage> {
     );
   }
 
+  // 상단 정보
+  Widget buildTopInfoRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CouponPage(), // CouponPage로 이동
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                Icon(Icons.card_giftcard, size: 20, color: Colors.black),
+                SizedBox(width: 5),
+                Text("내 쿠폰함", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                SizedBox(width: 10),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Text("${availableCouponCount}개", style: TextStyle(fontSize: 14)),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              Text("현재 내 포인트", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              SizedBox(width: 10),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Text("$points p", style: TextStyle(fontSize: 14)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
+  // 상태바
   Widget buildProgressBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 상태바
           Stack(
             children: [
               // 상태바 배경
@@ -203,14 +191,14 @@ class _TreePageState extends State<TreePage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              // 채워진 상태
+              // 현재 레벨 진행도
               FractionallySizedBox(
-                widthFactor: progress.clamp(0.05, 1.0), // 최소 진행도 5%
+                widthFactor: levelProgress.clamp(0.0, 1.0),
                 child: Container(
                   height: 20,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Color(0xFF67EACA), Color(0xFF33CC99)], // 그라데이션 색상
+                      colors: [Color(0xFF67EACA), Color(0xFF33CC99)],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
@@ -220,16 +208,12 @@ class _TreePageState extends State<TreePage> {
               ),
             ],
           ),
-          SizedBox(height: 10), // 상태바와 숫자 간격
-          // 상태바 아래 숫자
+          SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("0", style: TextStyle(fontSize: 12)),
-              Text("80", style: TextStyle(fontSize: 12)),
-              Text("240", style: TextStyle(fontSize: 12)),
-              Text("720", style: TextStyle(fontSize: 12)),
-              Text("2160", style: TextStyle(fontSize: 12)),
+              Text("${levelPoints[currentLevel]}", style: TextStyle(fontSize: 12)),
+              Text("${levelPoints[currentLevel + 1]}", style: TextStyle(fontSize: 12)),
             ],
           ),
         ],
@@ -237,7 +221,19 @@ class _TreePageState extends State<TreePage> {
     );
   }
 
+  // 메시지 박스
+  Widget buildMessageBox() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 50),
+      decoration: BoxDecoration(
+        color: Color(0xFFFCF9EC),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(message, style: TextStyle(fontSize: 18)),
+    );
+  }
 
+  // 액션 버튼들
   Widget buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
@@ -254,12 +250,7 @@ class _TreePageState extends State<TreePage> {
 
   Widget buildActionButton(String label, String imagePath, int cost) {
     return GestureDetector(
-      onTap: () => showActionModal(
-        context,
-        action: label, // 액션 이름 (예: "물주기")
-        cost: cost, // 비용 (예: 10포인트)
-        onConfirm: () => usePoints(cost), // 확인 버튼 클릭 시 포인트 사용
-      ),
+      onTap: () => handleAction(label, cost),
       child: Container(
         width: 100,
         height: 120,
