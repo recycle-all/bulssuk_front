@@ -774,7 +774,10 @@ class _CalendarPageState extends State<CalendarPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => MemoPage(selectedDate: memoDate),
+              builder: (context) => MemoPage(
+                selectedDate: memoDate,
+                onSave: _loadAlarms, // onSave에 _loadAlarms 전달
+              ),
             ),
           );
         },
