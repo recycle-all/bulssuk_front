@@ -6,12 +6,17 @@ import 'myPage/dashboard.dart';
 import 'calendar/calendar_page.dart';
 import 'quiz/quiz_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+import 'calendar/alarm_page.dart';
 final _storage = const FlutterSecureStorage(); // Secure Storage 인스턴스 생성
 void main() async {
   // 비동기 작업 초기화
   WidgetsFlutterBinding.ensureInitialized();
   // .env 파일 로드
   await dotenv.load();
+  // 시간대 초기화
+  await initializeAlarmNotifications();
   runApp(const MyApp());
 }
 
