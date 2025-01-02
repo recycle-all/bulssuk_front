@@ -8,8 +8,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class MemoPage extends StatefulWidget {
   final DateTime selectedDate;
   final String? alarmId; // 기존 알람 ID (수정 시 사용)
+  final VoidCallback? onSave; // 저장 후 호출할 콜백 함수
 
-  const MemoPage({Key? key, required this.selectedDate, this.alarmId}) : super(key: key);
+  const MemoPage({Key? key, required this.selectedDate, this.alarmId, this.onSave}) : super(key: key);
 
   @override
   State<MemoPage> createState() => _MemoPageState();
@@ -90,6 +91,10 @@ class _MemoPageState extends State<MemoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('알람이 저장되었습니다.')),
         );
+
+        // 저장 후 onSave 콜백 호출
+        widget.onSave?.call();
+
         Navigator.pop(context, true); // 저장 후 이전 화면으로 돌아가기
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -103,7 +108,6 @@ class _MemoPageState extends State<MemoPage> {
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
