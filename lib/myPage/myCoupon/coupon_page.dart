@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -16,6 +17,7 @@ class _CouponPageState extends State<CouponPage> {
   final String? _url = dotenv.env['URL'];
   List<Map<String, dynamic>> _coupons = [];
   bool _isLoading = true;
+  int _selectedTabIndex = 0;
 
   @override
   void initState() {
@@ -25,20 +27,10 @@ class _CouponPageState extends State<CouponPage> {
 
   Future<void> _fetchCoupons() async {
     try {
-      // API URL 확인
-      if (_url == null) {
-        print('API URL is not set in .env file');
-        throw Exception('API URL이 설정되지 않았습니다.');
-      }
-
-      // JWT 토큰 읽기
+      if (_url == null) throw Exception('API URL이 설정되지 않았습니다.');
       final token = await _storage.read(key: 'jwt_token');
-      if (token == null) {
-        print('JWT Token is missing');
-        throw Exception('로그인이 필요합니다.');
-      }
+      if (token == null) throw Exception('로그인이 필요합니다.');
 
-      // API 호출
       final response = await http.get(
         Uri.parse('$_url/user_coupon'),
         headers: {
@@ -49,30 +41,18 @@ class _CouponPageState extends State<CouponPage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
-        // 응답 데이터 디버깅
-        // print('Parsed Data: $data');
-
         if (data['success'] == true && data['data'] != null) {
           setState(() {
             _coupons = List<Map<String, dynamic>>.from(data['data']);
             _isLoading = false;
           });
-
-          // 쿠폰 데이터 디버깅
-          for (var coupon in _coupons) {
-            // print('Coupon: ${coupon['name']}, Expiration Date: ${coupon['expirationdate']}');
-          }
         } else {
-          print('Invalid response structure: $data');
           throw Exception('쿠폰 데이터가 유효하지 않습니다.');
         }
       } else {
-        print('Failed to fetch coupons. Status code: ${response.statusCode}');
         throw Exception('쿠폰 조회 실패: ${response.statusCode}');
       }
     } catch (error) {
-      print('Error occurred: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('쿠폰 조회 실패: $error')),
       );
@@ -84,28 +64,96 @@ class _CouponPageState extends State<CouponPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('내 쿠폰함')),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _coupons.isEmpty
-          ? const Center(
-        child: Text(
-          '사용 가능한 쿠폰이 없습니다.',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+    final DateTime now = DateTime.now();
+    final List<Map<String, dynamic>> availableCoupons = _coupons
+        .where((coupon) =>
+        DateTime.parse(coupon['expirationdate']).isAfter(now))
+        .toList();
+    final List<Map<String, dynamic>> expiredCoupons = _coupons
+        .where((coupon) =>
+        DateTime.parse(coupon['expirationdate']).isBefore(now))
+        .toList();
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: PreferredSize(
+          preferredSize: const Size.fromHeight(kToolbarHeight + 48), // AppBar + TabBar 높이
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const TopNavigationSection(
+                title: '내 쿠폰함',
+              ),
+              const TabBar(
+                indicatorColor: Color(0xFF67EACA), // 밑줄 색상
+                indicatorWeight: 1.0, // 밑줄 두께
+                labelColor: Colors.black, // 선택된 탭 텍스트 색상
+                unselectedLabelColor: Colors.grey, // 선택되지 않은 탭 텍스트 색상
+                labelStyle: TextStyle(
+                  fontSize: 16,
+                ),
+                tabs: [
+                  Tab(text: '사용 가능한 쿠폰'),
+                  Tab(text: '지난 쿠폰'),
+                ],
+              ),
+            ],
+          ),
         ),
-      )
-          : _buildCouponList(),
+        body: TabBarView(
+          children: [
+            _buildCouponList(availableCoupons),
+            _buildCouponList(expiredCoupons),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildCouponList() {
+  Widget _buildTabBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildTabButton('사용 가능한 쿠폰', 0),
+        _buildTabButton('지난 쿠폰', 1),
+      ],
+    );
+  }
+
+  Widget _buildTabButton(String title, int index) {
+    return Expanded(
+      child: TextButton(
+        onPressed: () => setState(() => _selectedTabIndex = index),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: _selectedTabIndex == index ? Colors.black : Colors.grey,
+            decoration:
+            _selectedTabIndex == index ? TextDecoration.underline : null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCouponList(List<Map<String, dynamic>> coupons) {
+    if (coupons.isEmpty) {
+      return const Center(
+        child: Text(
+          '쿠폰이 없습니다.',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16.0),
-      itemCount: _coupons.length,
+      itemCount: coupons.length,
       itemBuilder: (context, index) {
-        final coupon = _coupons[index];
-        // print('Rendering coupon: ${coupon['name']}, Expiration Date: ${coupon['expirationdate']}');
+        final coupon = coupons[index];
         return Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
@@ -113,23 +161,44 @@ class _CouponPageState extends State<CouponPage> {
           margin: const EdgeInsets.only(bottom: 16.0),
           elevation: 2.0,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(16.0), // 전체 패딩 추가
+            child: Row(
               children: [
-                Text(
-                  coupon['name'] ?? '',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12.0),
+                  child: Image.network(
+                    coupon['imageUrl'] ?? '',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.image,
+                      size: 70,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-                  '만료일: ${coupon['expirationdate'] ?? ''}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
+                const SizedBox(width: 30.0), // 이미지와 텍스트 사이 간격 조정
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        coupon['name'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 15.0), // 이름과 만료일 간 간격 조정
+                      Text(
+                        '만료일: ${coupon['expirationdate'] ?? ''}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -139,4 +208,4 @@ class _CouponPageState extends State<CouponPage> {
       },
     );
   }
-}
+ }
