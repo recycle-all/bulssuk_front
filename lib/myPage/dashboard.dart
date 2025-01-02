@@ -42,7 +42,7 @@ class _DashboardState extends State<Dashboard> {
         _userName = userName ?? 'Guest'; // user_name이 없으면 기본값으로 설정
       });
 
-      print('읽어온 user_name: $_userName'); // 디버깅 로그
+      print('user_name: $_userName'); // 디버깅 로그
     } catch (e) {
       print('user_name을 로드하는 중 오류 발생: $e');
     }
