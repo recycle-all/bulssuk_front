@@ -118,7 +118,7 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
   Widget _buildNoticeSection() {
     return Container(
       color: const Color(0xFFFCF9EC),
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
