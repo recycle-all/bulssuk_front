@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../myPage/myCoupon/coupon_page.dart'; // 쿠폰 페이지 import
-import 'tree_api_service.dart';
+import 'tree_api_service.dart'; // API 서비스 import
 import 'tree_modals.dart';
 import 'tree_level_manage.dart';
 import '../widgets/top_nav.dart';
@@ -42,58 +42,61 @@ class _TreePageState extends State<TreePage> {
     });
   }
 
-  // 상태바 진행도 증가
-  void increaseProgress(int cost) {
-    setState(() {
-      int rangeStart = levelPoints[currentLevel];
-      int rangeEnd = levelPoints[currentLevel + 1];
-      double progressIncrease = cost / (rangeEnd - rangeStart);
-
-      levelProgress += progressIncrease;
-
-      // 초과된 진행도를 처리
-      while (levelProgress >= 1.0 && currentLevel < levelPoints.length - 2) {
-        double overflowPoints = (levelProgress - 1.0) * (rangeEnd - rangeStart);
-        levelProgress = 0.0; // 현재 레벨 진행도 초기화
-
-        // 레벨업 모달 표시
-        showLevelUpModal(context, currentLevel, (newLevel) {
-          setState(() {
-            currentLevel = newLevel; // 레벨 업데이트
-            rangeStart = levelPoints[currentLevel];
-            rangeEnd = levelPoints[currentLevel + 1];
-
-            // 초과된 포인트를 다음 레벨 진행도로 이어가기
-            levelProgress = overflowPoints / (rangeEnd - rangeStart);
-
-            // 나무 상태 업데이트
-            treeState = getTreeState(currentLevel);
-            message = getTreeMessage(currentLevel);
-            treeImage = getTreeImage(currentLevel);
-          });
-        });
-        break; // 한 번에 한 단계씩 레벨업
-      }
-    });
-  }
-
-  // 액션 수행
-  void handleAction(String action, int cost) {
+  // 포인트 차감 액션 수행
+  void handleAction(String action, int cost) async {
     if (points < cost) {
       // 포인트 부족 모달
-      showInsufficientPointsModal(context);
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('알림'),
+          content: Text('포인트가 부족합니다.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('확인'),
+            ),
+          ],
+        ),
+      );
     } else {
-      // 포인트 충분하면 액션 수행
-      showActionModal(
-        context,
-        action: action,
-        cost: cost,
-        onConfirm: () {
-          setState(() {
-            points -= cost; // 포인트 차감
-            increaseProgress(cost); // 상태바 진행
-          });
-        },
+      // 포인트 충분하면 API 호출
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('$action'),
+          content: Text('$cost p를 사용해서 $action를 하시겠어요?'), // 동적 문구
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('취소'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // 모달 닫기
+                try {
+                  // API 호출
+                  final newPoints = await performTreeAction(action, cost);
+
+                  setState(() {
+                    points = newPoints; // 서버에서 반환된 포인트로 업데이트
+                  });
+
+                  // 성공 메시지
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('$action 성공! 현재 포인트: $points')),
+                  );
+                } catch (e) {
+                  // 실패 메시지
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('작업 실패: $e')),
+                  );
+                }
+              },
+              child: Text('확인'),
+            ),
+          ],
+        ),
       );
     }
   }
