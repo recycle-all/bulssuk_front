@@ -15,14 +15,14 @@ class CouponPage extends StatefulWidget {
 class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateMixin {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final String? _url = dotenv.env['URL'];
-  late TabController _tabController; // TabController 추가
+  late TabController _tabController;
   List<Map<String, dynamic>> _coupons = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this); // TabController 초기화
+    _tabController = TabController(length: 2, vsync: this);
     _fetchCoupons();
   }
 
@@ -83,7 +83,7 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
           children: [
             const TopNavigationSection(title: '내 쿠폰함'),
             TabBar(
-              controller: _tabController, // TabController 연결
+              controller: _tabController,
               indicatorColor: const Color(0xFF67EACA),
               indicatorWeight: 1.0,
               labelColor: Colors.black,
@@ -97,11 +97,45 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController, // TabController 연결
+      body: Column(
         children: [
-          _buildCouponList(availableCoupons),
-          _buildCouponList(expiredCoupons),
+          const SizedBox(height: 15), // 탭바와 유의사항 사이 간격 추가
+          _buildNoticeSection(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildCouponList(availableCoupons),
+                _buildCouponList(expiredCoupons),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoticeSection() {
+    return Container(
+      color: const Color(0xFFFCF9EC),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            '쿠폰 사용 시 유의사항',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 15),
+          Text(
+            '• 쿠폰은 유효기간 내에만 사용 가능합니다.\n'
+                '• 한 주문당 한 개의 쿠폰만 사용 가능합니다.\n'
+                '• 쿠폰은 일부 상품에 적용되지 않을 수 있습니다.',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
         ],
       ),
     );
@@ -179,7 +213,7 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    _tabController.dispose(); // TabController 해제
+    _tabController.dispose();
     super.dispose();
   }
 }
