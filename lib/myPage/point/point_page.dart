@@ -182,7 +182,7 @@ class _PointPageState extends State<PointPage> {
                         child: Align(
                           alignment: Alignment.centerRight, // 오른쪽 가운데 정렬
                           child: Text(
-                            '${isAdd ? '+' : '-'}${item['point_amount']}p',
+                            '${isAdd ? '+ ' : '  '}${item['point_amount']}p',
                             style: TextStyle(
                               fontSize: 18, // 포인트 금액 텍스트 크기
                               fontWeight: FontWeight.bold,
