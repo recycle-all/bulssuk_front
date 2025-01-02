@@ -239,7 +239,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-// 뉴스 리스트 (하나씩 표시하며 자동 스크롤, 세로 스크롤)
+            // 뉴스 리스트 (하나씩 표시하며 자동 스크롤, 세로 스크롤)
             SizedBox(
               height: 50, // 높이 조정
               child: isLoading
@@ -293,23 +293,34 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 왼쪽 정렬
                 children: [
                   const Text(
                     'AI한테 물어보기!',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: _openCamera,
-                    child: const Icon(Icons.camera_alt, size: 60, color: Color(0xFF12D3CF)),
-                  ),
-                  if (_image != null)
-                    Image.file(
-                      _image!,
-                      height: 200,
-                      width: 200,
-                      fit: BoxFit.cover,
+                  Center( // 아이콘을 가로 세로 중앙 정렬
+                    child: GestureDetector(
+                      onTap: _openCamera,
+                      child: const Icon(
+                        Icons.camera_alt,
+                        size: 60,
+                        color: Color(0xFF12D3CF),
+                      ),
                     ),
+                  ),
+                  if (_image != null) ...[
+                    const SizedBox(height: 20), // 이미지와 텍스트 간 간격
+                    Center( // 이미지를 가운데 정렬
+                      child: Image.file(
+                        _image!,
+                        height: 200,
+                        width: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
