@@ -50,8 +50,11 @@ class _AgreementPageState extends State<AgreementPage> {
           children: [
             // 상단 이미지
             SizedBox(
-              height: 200,
-              child: Placeholder(), // 이미지 자리
+              height: 150,
+              child: Image.asset(
+                'assets/bulssuk_white_logo.jpeg', // 이미지 경로
+                fit: BoxFit.contain,
+              ),
             ),
             SizedBox(height: 30),
             // 환영 메시지

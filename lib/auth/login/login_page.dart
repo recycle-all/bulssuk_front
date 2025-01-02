@@ -8,6 +8,7 @@ import '../join/agreement_page.dart'; // 회원가입 페이지 import
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:bulssuk/calendar/alarm_page.dart';
+
 class LoginPage extends StatefulWidget {
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -109,10 +110,13 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             // 이미지 자리
             SizedBox(
-              height: 200,
-              child: Placeholder(), // 이미지 대신 자리 잡기
+              height: 230,
+              child: Image.asset(
+                'assets/bulssuk_white_text_logo.jpg', // 이미지 경로
+                fit: BoxFit.contain, // 이미지 크기 조정
             ),
-            const SizedBox(height: 40),
+            ),
+            const SizedBox(height: 10),
             // 아이디 입력 필드
             TextField(
               controller: _emailController,
