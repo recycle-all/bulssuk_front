@@ -100,7 +100,7 @@ Future<void> scheduleDailyAlarm({
   tz.setLocalLocation(tz.getLocation('Asia/Seoul'));
 
   final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-  tz.TZDateTime firstAlarmTime = makeDate(startDate, 12, 09);
+  tz.TZDateTime firstAlarmTime = makeDate(startDate, 13, 06);
 
   if (now.isAfter(firstAlarmTime)) {
     firstAlarmTime = firstAlarmTime.add(const Duration(days: 1));
