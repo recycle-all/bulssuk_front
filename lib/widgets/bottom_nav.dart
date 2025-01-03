@@ -55,6 +55,9 @@ class _BottomNavigationSectionState extends State<BottomNavigationSection> {
       type: BottomNavigationBarType.fixed,
       currentIndex: widget.currentIndex, // 현재 선택된 인덱스
       onTap: _onItemTapped,
+      backgroundColor: Colors.white, // 하단바 배경색
+      selectedItemColor: Color(0xFF67EACA), // 선택된 아이템 색상
+      unselectedItemColor: Colors.grey, // 선택되지 않은 아이템 색상
       items: const [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
