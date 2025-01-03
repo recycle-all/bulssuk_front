@@ -397,10 +397,13 @@ class _HomePageState extends State<HomePage> {
                     itemCount: companies.length,
                     itemBuilder: (context, index) {
                       final company = companies[index];
+                      // 데이터베이스 경로를 assets 경로로 변환
+                      final imagePath = 'assets/${company['company_img'].trim().replaceFirst('/uploads/images/', '')}';
+                      print('Image Path: $imagePath'); // 디버깅용
                       return _buildRecyclingCard(
                         context,
                         company['company_name'], // 기업 이름
-                        company['company_img'], // 기업 이미지 URL
+                        imagePath, // 로컬 에셋 경로
                         company['company_no'], // 기업 ID
                       );
                     },
@@ -462,8 +465,8 @@ class _HomePageState extends State<HomePage> {
 
 
   // 리사이클링 카드 위젯
-  Widget _buildRecyclingCard(
-      BuildContext context, String title, String imageUrl, int companyId) {
+  Widget _buildRecyclingCard(BuildContext context, String title,
+      String imagePath, int companyId) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -490,10 +493,13 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.network(
-              imageUrl,
+            Image.asset(
+              imagePath,
               height: 80,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.image_not_supported, size: 80);
+              },
             ),
             const SizedBox(height: 5),
             Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
