@@ -52,18 +52,30 @@ class _RecyclingDetailPageState extends State<RecyclingDetailPage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (detail != null) ...[
-              Image.network(detail!['guide_img'], fit: BoxFit.cover),
-              const SizedBox(height: 10),
-              Text(detail!['guide_content'], style: const TextStyle(fontSize: 16)),
-            ] else
-              const Text('No details available'),
-          ],
+          : SingleChildScrollView( // 스크롤 가능하도록 수정
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (detail != null) ...[
+                // 데이터베이스 경로를 assets 경로로 변환
+                Image.asset(
+                  'assets/${detail!['guide_img'].trim().replaceFirst('/uploads/images/', '')}',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.image_not_supported, size: 50);
+                  },
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  detail!['guide_content'],
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ] else
+                const Text('No details available'),
+            ],
+          ),
         ),
       ),
     );
