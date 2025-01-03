@@ -30,6 +30,11 @@ class MyApp extends StatelessWidget {
     print('Loaded URL: $apiUrl');
 
     return MaterialApp(
+
+      theme: ThemeData(
+        scaffoldBackgroundColor: Colors.white, // 전체 배경색 설정
+      ),
+
       title: 'Recycling',
       debugShowCheckedModeBanner: false, // 디버그 배너 숨김
       initialRoute: '/login', // 앱 시작 화면을 로그인 페이지로 설정
