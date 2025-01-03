@@ -87,10 +87,13 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            company['company_img'], // 네트워크 이미지 사용
+                          child: Image.asset(
+                            companyImgPath,
                             fit: BoxFit.cover,
-                            width: MediaQuery.of(context).size.width,
+                            width: MediaQuery
+                                .of(context)
+                                .size
+                                .width,
                             height: 200,
                           ),
                         ),
@@ -135,17 +138,24 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
 
   // 제품 아이템 위젯
   Widget _buildProductItem(String title, String imageUrl) {
+    // 이미지 경로를 assets 경로로 변환
+    final imagePath = 'assets/${imageUrl.trim().replaceFirst('/uploads/images/', '')}';
+    print('Image Path: $imagePath'); // 디버깅용
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            child: Image.network(
-              imageUrl,
+            child: Image.asset(
+              imagePath, // assets 경로를 사용
               fit: BoxFit.cover,
               width: 120,
               height: 120,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.image_not_supported, size: 50);
+              },
             ),
           ),
           const SizedBox(width: 16),
