@@ -60,6 +60,8 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
 
           final company = snapshot.data!['company'];
           final products = snapshot.data!['products'] as List;
+          final companyImgPath = 'assets${company['company_img'].replaceFirst(
+              '/uploads/images', '')}';
 
           return SingleChildScrollView(
             child: Padding(
