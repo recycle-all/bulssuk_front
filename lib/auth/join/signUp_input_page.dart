@@ -17,7 +17,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
   String? _selectedDay;
   String? _passwordErrorMessage;
 
-  final List<String> years = List.generate(2024 - 1950 + 1, (index) => '${1950 + index}');
+  final List<String> years = List.generate(2025 - 1960 + 1, (index) => '${1960 + index}');
   final List<String> months = List.generate(12, (index) => '${index + 1}');
   final List<String> days = List.generate(31, (index) => '${index + 1}');
 
