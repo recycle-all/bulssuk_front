@@ -48,6 +48,7 @@ class _RecyclingDetailPageState extends State<RecyclingDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text(widget.subcategoryName), // 전달받은 카테고리 이름을 제목으로 설정
       ),
       body: isLoading

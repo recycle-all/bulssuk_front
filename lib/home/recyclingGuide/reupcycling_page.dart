@@ -45,6 +45,7 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: TopNavigationSection(
+        backgroundColor: Colors.white,
         title: '리사이클링, 업사이클링 기업',
       ),
       body: FutureBuilder<Map<String, dynamic>>(

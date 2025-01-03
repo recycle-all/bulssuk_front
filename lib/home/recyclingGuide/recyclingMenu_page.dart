@@ -50,6 +50,7 @@ class _RecyclingMenuPageState extends State<RecyclingMenuPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text(widget.categoryName), // 전달받은 카테고리 이름을 제목으로 설정
       ),
       body: isLoading
