@@ -4,13 +4,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
-
-
 class ShoppingContentPage extends StatefulWidget {
   final int shoppingNo; // shopping_no 전달 받음
-
-  ShoppingContentPage({required this.shoppingNo});
+  final Function(int) onPurchase; // 포인트 구매 함수
+  final Function(int, String) onCouponExchange; // 상품권 교환 함수
+  ShoppingContentPage({
+    required this.shoppingNo,
+    required this.onPurchase,
+    required this.onCouponExchange,
+  });
 
   @override
   _ShoppingContentPageState createState() => _ShoppingContentPageState();
@@ -20,6 +22,7 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
   Map<String, dynamic>? product;
   bool isLoading = true;
   final URL = dotenv.env['URL'];
+
   @override
   void initState() {
     super.initState();
@@ -27,14 +30,9 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
   }
 
   Future<void> fetchProductDetails() async {
-    // GET 요청으로 shopping_no 전달
     final url = Uri.parse('http://localhost:8001/shopping_product?shopping_no=${widget.shoppingNo}');
     try {
-      print("Fetching product for shopping_no: ${widget.shoppingNo}"); // 여기서 출력
       final response = await http.get(url, headers: {"Content-Type": "application/json"});
-
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -89,23 +87,26 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
             Row(
               children: [
                 // Product Image
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8.0),
+                Expanded(
+                  flex: 2, // 이미지 비율 증가
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: product != null && product!["shopping_img"] != null
+                        ? Image.asset(
+                      'assets/${product!["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
+                      fit: BoxFit.cover,
+                    )
+                        : Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
                   ),
-                  child: product != null && product!["shopping_img"] != null
-                      ? Image.asset(
-                    'assets/${product!["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
-                    fit: BoxFit.cover,
-                  )
-                      : Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
                 ),
                 SizedBox(width: 16.0),
                 // Product Details
                 Expanded(
+                  flex: 3, // 텍스트 영역 비율 감소
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -132,6 +133,54 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
                           fontSize: 14,
                         ),
                       ),
+                      SizedBox(height: 8.0), // 간격 추가
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                widget.onPurchase(product!["shopping_point"]);
+                              },
+                              child: Text(
+                                "${product!["shopping_point"] ?? 0} 포인트 구매",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFFB0F4E6), // 버튼 배경색
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0), // 버튼 모서리 둥글게
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.0), // 버튼 간 간격
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                widget.onCouponExchange(
+                                  product!["coupon_no"],
+                                  product!["shopping_title"] ?? "상품",
+                                );
+                              },
+                              child: Text(
+                                "상품권 교환",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: Color(0xFFB0F4E6), // 버튼 테두리 색상
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 8.0),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -144,13 +193,12 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
                 itemBuilder: (context, index) {
                   final item = jsonDecode(product!["shopping_content"])[index];
 
-                  // item이 Map인지 확인
                   if (item is Map && item["type"] == "image") {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Image.network(
                         item["src"],
-                        fit: BoxFit.contain, // 비율 유지
+                        fit: BoxFit.contain,
                         loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Center(
@@ -174,9 +222,7 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
                         style: TextStyle(fontSize: 16, color: Colors.black),
                       ),
                     );
-                  }
-                  // 경로만 있는 경우(문자열 형태로 이미지 경로 전달)
-                  else if (item is String && Uri.tryParse(item)?.hasAbsolutePath == true) {
+                  } else if (item is String && Uri.tryParse(item)?.hasAbsolutePath == true) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Image.network(
@@ -198,12 +244,10 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
                       ),
                     );
                   }
-                  return SizedBox.shrink(); // 기본적으로 빈 공간
+                  return SizedBox.shrink();
                 },
               ),
             )
-
-
           ],
         ),
       ),
