@@ -77,6 +77,7 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white, // AppBar 배경색 변경
         title: Text(
             '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget
                 .selectedDate.day}일 메모'),
@@ -90,34 +91,78 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
 
 
           return Card(
-            child: ListTile(
-              title: Text(memo['user_calendar_name']),
-              subtitle: Text(memo['user_calendar_memo']),
-              trailing: ElevatedButton(
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UpdateMemoPage(
-                        memo: memo, // `user_calendar_no` 포함
-                        selectedDate: widget.selectedDate,
+            color: const Color(0xFFFCF9EC),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0), // 둥근 모서리
+            ),
+            margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // 외부 여백
+            child: Padding(
+              padding: const EdgeInsets.all(16.0), // 내부 여백
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // 메모 정보 (제목과 내용)
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          memo['user_calendar_name'], // 제목
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          memo['user_calendar_memo'], // 내용
+                          style: const TextStyle(
+                            fontSize: 14.0,
+                            color: Colors.grey,
+                          ),
+                          maxLines: 2, // 최대 2줄로 제한
+                          overflow: TextOverflow.ellipsis, // 길면 말줄임표 처리
+                        ),
+                      ],
+                    ),
+                  ),
+                  // 수정 버튼
+                  ElevatedButton(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => UpdateMemoPage(
+                            memo: memo, // `user_calendar_no` 포함
+                            selectedDate: widget.selectedDate,
+                          ),
+                        ),
+                      );
+
+                      if (result == true) {
+                        _refreshMemoList();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white, // 버튼 배경색
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
+                        side: const BorderSide(color: Color(0xFFCCCCCC)), // 테두리
                       ),
                     ),
-                  );
-
-                  if (result == true) {
-                    _refreshMemoList();
-                  }
-                },
-                child: const Text(
-                  '수정',
-                  style: TextStyle(
-                    color: Colors.black,
+                    child: const Text(
+                      '수정',
+                      style: TextStyle(
+                        color: Colors.black, // 텍스트 색상
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           );
+
         },
       ),
     );
