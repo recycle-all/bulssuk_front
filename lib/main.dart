@@ -10,6 +10,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'calendar/alarm_page.dart';
+import 'shopping/shopping_page.dart';
 final _storage = const FlutterSecureStorage(); // Secure Storage 인스턴스 생성
 void main() async {
   // 비동기 작업 초기화
