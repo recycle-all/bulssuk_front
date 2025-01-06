@@ -575,7 +575,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     },
                     markerBuilder: (context, day, focusedDay) {
                       final strippedDay = _stripTime(day);
-                      final hasChecked = _checkedDays.contains(strippedDay); // 출석 체크 확인
+                      final hasChecked = _checkedDays.any((checkedDay) => _stripTime(checkedDay) == strippedDay);
                       final hasMemo = memoDates.contains(strippedDay);
                       final hasEvent = _events.any((event) =>
                       event['date'] == strippedDay);
