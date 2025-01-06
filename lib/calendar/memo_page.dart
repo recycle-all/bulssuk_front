@@ -132,8 +132,21 @@ class _MemoPageState extends State<MemoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TopNavigationSection(
-        title: '알림 설정',
+      appBar: AppBar(
+        title: const Text('알림 설정'),
+        backgroundColor: Colors.white, // AppBar 배경색 변경 (필요에 따라 수정)
+        actions: [
+          TextButton(
+            onPressed: _saveMemo,
+            child: const Text(
+              '저장',
+              style: TextStyle(
+                color: Colors.black, // 버튼 텍스트 색상
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -197,14 +210,7 @@ class _MemoPageState extends State<MemoPage> {
               maxLines: 5,
               decoration: _buildInputDecoration('메모를 입력하세요.'),
             ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton('취소', () => Navigator.pop(context)),
-                _buildActionButton('저장', _saveMemo),
-              ],
-            ),
+            const SizedBox(height: 20)
           ],
         ),
       ),
