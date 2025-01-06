@@ -60,6 +60,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
           style: TextStyle(color: Colors.black),
         ),
       ),
+      backgroundColor: const Color(0xFFFFFEFD), // 배경색 추가
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
