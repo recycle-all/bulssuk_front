@@ -116,18 +116,43 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // 2. 제품 리스트
+                  // 2. '상품 보러가기' 버튼
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/shopping');
+                    },
+                    child: const Text(
+                      '상품 보러가기',
+                      style: TextStyle(
+                        color: Colors.black, // 글자 색 변경
+                        fontWeight: FontWeight.normal, // 글자 굵기 추가 (선택 사항)
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFB0F4E6), // 버튼 배경 색
+                      minimumSize: const Size(double.infinity, 50), // 너비 전체로
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // 3. 제품 리스트
                   const Text(
                     '대표 제품',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  ...products.map((product) {
-                    return _buildProductItem(
-                      product['product_name'],
-                      product['product_img'],
-                    );
-                  }).toList(),
+                  ListView.builder(
+                    shrinkWrap: true, // SingleChildScrollView 내부에서 사용 시 필요
+                    physics: const NeverScrollableScrollPhysics(), // 스크롤 비활성화
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return _buildProductItem(
+                        product['product_name'],
+                        product['product_img'],
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -141,7 +166,6 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
   Widget _buildProductItem(String title, String imageUrl) {
     // 이미지 경로를 assets 경로로 변환
     final imagePath = 'assets/${imageUrl.trim().replaceFirst('/uploads/images/', '')}';
-    print('Image Path: $imagePath'); // 디버깅용
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -150,7 +174,7 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
         children: [
           ClipRRect(
             child: Image.asset(
-              imagePath, // assets 경로를 사용
+              imagePath,
               fit: BoxFit.cover,
               width: 120,
               height: 120,
