@@ -20,6 +20,7 @@ class _MemoPageState extends State<MemoPage> {
   String _alarmName = '';
   String _alarmFrequency = '매일'; // 초기 선택값
   bool _alarmEnabled = true; // 알림 활성화 상태
+  TimeOfDay? _selectedTime; // 선택된 시간
   TextEditingController _memoController = TextEditingController();
 
   @override
@@ -27,6 +28,19 @@ class _MemoPageState extends State<MemoPage> {
     super.initState();
     if (widget.alarmId != null) {
       _loadExistingAlarm(); // 알람 수정 시 기존 데이터 로드
+    }
+  }
+
+  // 시간 선택 함수
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (pickedTime != null && pickedTime != _selectedTime) {
+      setState(() {
+        _selectedTime = pickedTime;
+      });
     }
   }
 
@@ -71,12 +85,18 @@ class _MemoPageState extends State<MemoPage> {
     // 날짜를 YYYY-MM-DD 형식으로 변환
     String formattedDate = '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
 
+    // 시간을 HH:mm 형식으로 변환
+    String formattedTime = _selectedTime != null
+        ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+        : '00:00'; // 기본 시간 (선택하지 않으면 00:00)
+
     final alarmData = {
       'user_id': userId,
       'user_calendar_name': _alarmName,
       'user_calendar_every': _alarmFrequency,
       'user_calendar_memo': _memoController.text,
       'user_calendar_date': formattedDate, // 날짜 추가
+      'user_calendar_time': formattedTime,
       'user_calendar_list': _alarmEnabled, // 알림 활성화 상태 전송
     };
 
@@ -134,6 +154,25 @@ class _MemoPageState extends State<MemoPage> {
                   _alarmName = value;
                 });
               },
+            ),
+            const SizedBox(height: 20),
+            _buildLabel('알림 시간'),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => _selectTime(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFCCCCCC)),
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Text(
+                  _selectedTime != null
+                      ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                      : '시간을 선택하세요.',
+                  style: const TextStyle(fontSize: 16.0),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             _buildLabel('알림 설정'),
