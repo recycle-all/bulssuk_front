@@ -76,6 +76,7 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
           style: TextStyle(color: Colors.black),
         ),
       ),
+      backgroundColor: const Color(0xFFFFFEFD), // 배경색 추가
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : product == null
