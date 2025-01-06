@@ -57,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
         await _storage.write(key: 'user_email', value: email);
         await _storage.write(key: 'user_no', value: userNo.toString());
         // 저장된 데이터 디버깅 출력
+        print('jwt_token: $token');
         print('Secure Storage 저장 완료:');
         print('User ID: $userId');
         print('Name: $name');
