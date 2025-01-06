@@ -55,6 +55,7 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => Dashboard(), // Dashboard 경로
         '/calendar': (context) => CalendarPage(), // 캘린더 페이지 경로
         '/quiz': (context) => QuizPage(storage: _storage), // 퀴즈 페이지 경로
+        '/shopping': (context) => ShoppingPage(),
         '/voting': (context) => FutureBuilder<int?>(
           future: _getUserNo(),
           builder: (context, snapshot) {
