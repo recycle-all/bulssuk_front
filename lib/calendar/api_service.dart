@@ -19,9 +19,7 @@ Future<List<dynamic>> fetchUserAlarms(int userNo) async {
 
   final response = await http.get(url);
 
-  print("안되냐고");
   print(response);
-  print("왜왜");
   print('Response body: ${response.body}'); // 응답 데이터 출력
 
   if (response.statusCode == 200) {
