@@ -536,6 +536,19 @@ class _CalendarPageState extends State<CalendarPage> {
                     await _fetchMonthImage(focusedDay.month);
                     await _loadEvents();
                   },
+                  daysOfWeekStyle: const DaysOfWeekStyle(
+                    weekdayStyle: TextStyle(
+                      fontSize: 12, // 요일 텍스트 크기 조정
+                      color: Colors.black,
+                    ),
+                    weekendStyle: TextStyle(
+                      fontSize: 12, // 주말 텍스트 크기 조정
+                      color: Colors.red,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent, // 배경 투명 설정
+                    ),
+                  ),
                   calendarStyle: const CalendarStyle(
                     todayDecoration: BoxDecoration(
                       color: Colors.grey,
@@ -625,6 +638,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     titleCentered: true,
                   ),
                 ),
+
+                const SizedBox(height: 20),
 
                 // 출석 체크 버튼
                 Padding(
