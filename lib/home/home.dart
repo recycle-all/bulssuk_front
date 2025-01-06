@@ -324,7 +324,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                       // 나무키우기 버튼
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/voting'); // /voting으로 이동
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFCF9EC), // 버튼 배경색
                           foregroundColor: Colors.black, // 버튼 글자색
@@ -333,7 +335,7 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text('나무키우기'),
+                        child: const Text('분리수거 투표'),
                       ),
                     ],
                   ),

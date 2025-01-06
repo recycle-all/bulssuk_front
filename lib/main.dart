@@ -1,3 +1,4 @@
+import 'package:bulssuk/home/AI/voting.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // dotenv 패키지
 import 'home/home.dart';
@@ -23,6 +24,15 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Future<int?> _getUserNo() async {
+    // Secure Storage에서 user_no를 가져옵니다.
+    String? userNo = await _storage.read(key: 'user_no');
+    if (userNo == null) {
+      return null;
+    }
+    return int.parse(userNo);
+  }
+
   @override
   Widget build(BuildContext context) {
     // .env 파일에서 가져온 값 확인 (디버그용)
@@ -45,6 +55,25 @@ class MyApp extends StatelessWidget {
         '/dashboard': (context) => Dashboard(), // Dashboard 경로
         '/calendar': (context) => CalendarPage(), // 캘린더 페이지 경로
         '/quiz': (context) => QuizPage(storage: _storage), // 퀴즈 페이지 경로
+        '/voting': (context) => FutureBuilder<int?>(
+          future: _getUserNo(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasError || snapshot.data == null) {
+              return const Scaffold(
+                body: Center(child: Text('사용자 정보를 가져오는 데 실패했습니다.')),
+              );
+            } else {
+              return VoteBoardPage(
+                initialVoteList: [],
+                userNo: snapshot.data!,
+              );
+            }
+          },
+        ),
       },
     );
   }
