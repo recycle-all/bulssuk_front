@@ -5,6 +5,8 @@ import 'dart:convert';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import '../../widgets/bottom_nav.dart'; // 하단 네비게이션 가져오기
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../myPage/point/point_page.dart';  // 포인트 페이지 임포트
+import '../myPage/myCoupon/coupon_page.dart'; // 쿠폰 페이지 임포트
 
 final URL = dotenv.env['URL'];
 final storage = FlutterSecureStorage();
@@ -40,12 +42,52 @@ class _TreePageState extends State<TreePage> {
   String treeImage = ""; // 나무 이미지 URL
   String treeContent = "잠시만 기다려주세요."; // 나무 상태 멘트
   String? userNo; // 사용자 번호
+  int points = 0;
+  int availableCoupons = 0;
   final FlutterSecureStorage _storage = FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     loadUserData(); // 사용자 데이터 로드
+    fetchUserPoints();
+    fetchCoupons();
+  }
+
+  Future<void> fetchUserPoints() async {
+    final token = await storage.read(key: "jwt_token");
+    final response = await http.get(
+      Uri.parse('$URL/total_point'),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        points = data['totalPoints'];
+      });
+    } else {
+      print("포인트 조회 실패: ${response.body}");
+    }
+  }
+
+  Future<void> fetchCoupons() async {
+    final token = await storage.read(key: "jwt_token");
+    final response = await http.get(
+      Uri.parse('$URL/user_coupon'),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        availableCoupons = data['coupons'].length;
+      });
+    } else {
+      print("쿠폰 조회 실패: ${response.body}");
+    }
   }
 
   Future<void> loadUserData() async {
@@ -272,55 +314,62 @@ class _TreePageState extends State<TreePage> {
       ),
       body: treeStatus == "로딩 중..."
           ? Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              treeStatus,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          : Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    treeStatus,
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 16),
+                  Image.network(
+                    treeImage,
+                    height: 200,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(Icons.image, size: 200);
+                    },
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    treeContent,
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  SizedBox(height: 16),
+                  LinearProgressIndicator(
+                    value: calculateLevelPercent(treePoints, treeStatus),
+                    minHeight: 10,
+                  ),
+                  SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => showActionDialog("물주기"),
+                        child: Text('물주기'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => showActionDialog("햇빛쐬기"),
+                        child: Text('햇빛쐬기'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => showActionDialog("비료주기"),
+                        child: Text('비료주기'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            SizedBox(height: 16),
-            Image.network(
-              treeImage,
-              height: 200,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(Icons.image, size: 200);
-              },
-            ),
-            SizedBox(height: 16),
-            Text(
-              treeContent,
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: calculateLevelPercent(treePoints, treeStatus),
-              minHeight: 10,
-            ),
-            SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () => showActionDialog("물주기"),
-                  child: Text('물주기'),
-                ),
-                ElevatedButton(
-                  onPressed: () => showActionDialog("햇빛쐬기"),
-                  child: Text('햇빛쐬기'),
-                ),
-                ElevatedButton(
-                  onPressed: () => showActionDialog("비료주기"),
-                  child: Text('비료주기'),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-      bottomNavigationBar: const BottomNavigationSection(currentIndex: 0),
+      bottomNavigationBar: const BottomNavigationSection(currentIndex: 2),
     );
   }
+
 }
