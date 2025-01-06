@@ -12,7 +12,17 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart'; // image_picker import
 import 'dart:io'; // File 사용
 
+// import 'package:ftpconnect/ftpconnect.dart';
+import '../home/ai/ai.dart';
+import '../home/ai/voting.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 final URL = dotenv.env['URL'];
+
+// const String ftpHost = "222.112.27.120"; // FTP 서버 주소
+// const String ftpUser = "suddenly"; // FTP 계정 사용자 이름
+// const String ftpPassword = "suddenly"; // FTP 계정 비밀번호
+// const String ftpDirectory = "img/"; // 파일을 저장할 디렉터리
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -106,8 +116,40 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Future<void> uploadFileToFTP(File file) async {
+  //   final ftpConnect = FTPConnect(
+  //     ftpHost,
+  //     user: ftpUser,
+  //     pass: ftpPassword,
+  //     timeout: const Duration(seconds: 30).inMilliseconds, // 연결 타임아웃
+  //   );
+  //
+  //   try {
+  //     print("FTP 서버에 연결 시도...");
+  //     await ftpConnect.connect();
+  //
+  //     // 업로드할 디렉터리로 변경
+  //     await ftpConnect.changeDirectory(ftpDirectory);
+  //
+  //     // 파일 업로드
+  //     final bool result = await ftpConnect.uploadFile(file);
+  //
+  //     if (result) {
+  //       print("파일 업로드 성공!");
+  //     } else {
+  //       print("파일 업로드 실패!");
+  //     }
+  //   } catch (e) {
+  //     print("FTP 업로드 중 오류 발생: $e");
+  //   } finally {
+  //     await ftpConnect.disconnect();
+  //     print("FTP 연결 종료");
+  //   }
+  // }
+
   // 카메라 열기 함수
   Future<void> _openCamera() async {
+    print('카메라호출');
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.camera,
@@ -119,10 +161,92 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _image = File(pickedFile.path); // 이미지 파일 저장
         });
+
+        // 서버로 이미지 업로드
+        print('이미지 업로드 함수 호출 전');
+        // 올바른 BuildContext 사용
+        Navigator.push(
+          this.context,
+          MaterialPageRoute(
+            builder: (context) => Ai(imageFile: _image!), // Ai 페이지로 이동
+          ),
+        );
+        // await _uploadImage(_image!);
+        // await uploadFileToFTP(_image!);
+
+
       }
     } catch (e) {
       print("카메라 사용 중 오류 발생: $e");
     }
+  }
+  Future<List<Map<String, dynamic>>> fetchVoteList() async {
+    const String serverUrl = 'http://192.168.0.240:8001/votes'; // 서버 주소 업데이트
+
+    try {
+      final response = await http.get(Uri.parse(serverUrl));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else {
+        print('Failed to fetch vote list: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching vote list: $e');
+      return [];
+    }
+  }
+
+  void showTopNotification(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: 50.0, // 화면 상단에서의 위치
+        left: 20.0,
+        right: 20.0,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10.0,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '👀',
+                  style: TextStyle(fontSize: 24),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    Future.delayed(const Duration(seconds: 3), () {
+      overlayEntry.remove();
+    });
   }
 
 
