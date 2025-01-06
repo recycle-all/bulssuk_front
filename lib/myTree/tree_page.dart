@@ -309,13 +309,49 @@ class _TreePageState extends State<TreePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TopNavigationSection(
-        title: '나무 키우기',
-      ),
-      body: treeStatus == "로딩 중..."
-          ? Center(child: CircularProgressIndicator())
-          : Column(
+      appBar: const TopNavigationSection(title: '나무 키우기'),
+      body: Column(
         children: [
+          // **포인트 및 쿠폰 표시 영역**
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            color: Colors.grey[200],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PointPage(totalPoints: points), // totalPoints 전달
+                      ),
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      const Text("내 포인트", style: TextStyle(fontSize: 16)),
+                      Text('$points P', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CouponPage()), // 쿠폰 페이지 이동
+                    );
+                  },
+                  child: Column(
+                    children: [
+                      const Text("쿠폰함", style: TextStyle(fontSize: 16)),
+                      Text('$availableCoupons 개', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
