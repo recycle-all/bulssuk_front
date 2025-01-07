@@ -134,18 +134,32 @@ class _MemoPageState extends State<MemoPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isButtonEnabled = _alarmName.isNotEmpty; // 버튼 활성화 상태
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('알림 설정'),
         backgroundColor: Colors.white, // AppBar 배경색 변경 (필요에 따라 수정)
         actions: [
-          TextButton(
-            onPressed: _saveMemo,
-            child: const Text(
-              '저장',
-              style: TextStyle(
-                color: Colors.black, // 버튼 텍스트 색상
-                fontWeight: FontWeight.bold,
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0), // 오른쪽 여백 추가
+            child: SizedBox(
+              width: 80, // 원하는 너비 설정
+              height: 50, // 원하는 높이 설정
+              child: TextButton(
+                onPressed: isButtonEnabled ? _saveMemo : null, // 비활성화 상태 처리
+                style: TextButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0), // 모서리 반경 설정
+                  ),
+                ),
+                child: Text(
+                  '추가',
+                  style: TextStyle(
+                    color: isButtonEnabled ? Colors.black : const Color(0xFFCCCCCC), // 활성화 상태에 따라 색상 변경
+                    fontSize: 20,
+                  ),
+                ),
               ),
             ),
           ),
@@ -156,9 +170,34 @@ class _MemoPageState extends State<MemoPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일 ${_getWeekday(widget.selectedDate.weekday)}요일',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우 정렬
+              children: [
+                Text(
+                  '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일 ${_getWeekday(widget.selectedDate.weekday)}요일',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    const Text(
+                      '알림 설정',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 8), // 텍스트와 스위치 간 간격
+                    CupertinoSwitch(
+                      value: _alarmEnabled,
+                      activeTrackColor: CupertinoColors.activeGreen,
+                      thumbColor: CupertinoColors.white,
+                      trackColor: CupertinoColors.inactiveGray,
+                      onChanged: (value) {
+                        setState(() {
+                          _alarmEnabled = value; // 토글 상태 업데이트
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             _buildLabel('알림 이름'),
@@ -172,38 +211,32 @@ class _MemoPageState extends State<MemoPage> {
               },
             ),
             const SizedBox(height: 20),
-            _buildLabel('알림 시간'),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => _selectTime(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFCCCCCC)),
-                  borderRadius: BorderRadius.circular(12.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우로 정렬
+              children: [
+                _buildLabel('알림 시간'),
+                GestureDetector(
+                  onTap: () => _selectTime(context), // 클릭 시 시간 선택 창 열기
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD3D3D3), // 회색 배경
+                      borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
+                    ),
+                    child: Text(
+                      _selectedTime != null
+                          ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                          : '11:00', // 기본값으로 "11:00" 표시
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black, // 텍스트 색상
+                      ),
+                    ),
+                  ),
                 ),
-                child: Text(
-                  _selectedTime != null
-                      ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
-                      : '시간을 선택하세요.',
-                  style: const TextStyle(fontSize: 16.0),
-                ),
-              ),
+              ],
             ),
-            const SizedBox(height: 20),
-            _buildLabel('알림 설정'),
-            CupertinoSwitch(
-              value: _alarmEnabled,
-              activeTrackColor: CupertinoColors.activeGreen,
-              thumbColor: CupertinoColors.white,
-              trackColor: CupertinoColors.inactiveGray,
-              onChanged: (value) {
-                setState(() {
-                  _alarmEnabled = value; // 토글 상태 업데이트
-                });
-              },
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             _buildFrequencyOptions(),
             const SizedBox(height: 20),
             _buildLabel('알림 메모'),
@@ -219,6 +252,7 @@ class _MemoPageState extends State<MemoPage> {
       ),
     );
   }
+
 
   // UI Helper: 라벨 빌더
   Widget _buildLabel(String text) {
@@ -259,13 +293,18 @@ class _MemoPageState extends State<MemoPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
+              padding: const EdgeInsets.symmetric(vertical: 14.0), // 버튼 내부 패딩 (높이 조정)
+              minimumSize: const Size(80, 50), // 최소 크기 설정 (너비, 높이)
             ),
             onPressed: () {
               setState(() {
                 _alarmFrequency = label;
               });
             },
-            child: Text(label),
+            child: Text(label,
+              style: const TextStyle(
+                color: Colors.black, // 모든 버튼의 텍스트 색상
+              ),),
           ),
         ),
       ))
