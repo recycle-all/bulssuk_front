@@ -224,23 +224,30 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
               decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
             ),
             const SizedBox(height: 20),
-            _buildLabel('알림 시간'),
-            const SizedBox(height: 12),
-            GestureDetector(
-              onTap: () => _selectTime(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFCCCCCC)),
-                  borderRadius: BorderRadius.circular(12.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우로 정렬
+              children: [
+                _buildLabel('알림 시간'),
+                GestureDetector(
+                  onTap: () => _selectTime(context), // 클릭 시 시간 선택 창 열기
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD3D3D3), // 회색 배경
+                      borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
+                    ),
+                    child: Text(
+                      _selectedTime != null
+                          ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                          : '11:00', // 기본값으로 "11:00" 표시
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black, // 텍스트 색상
+                      ),
+                    ),
+                  ),
                 ),
-                child: Text(
-                  _selectedTime != null
-                      ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
-                      : '시간을 선택하세요.',
-                  style: const TextStyle(fontSize: 16.0),
-                ),
-              ),
+              ],
             ),
             const SizedBox(height: 30),
             _buildFrequencyOptions(),
@@ -257,7 +264,7 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildActionButton('삭제', _deleteMemo),
-                _buildActionButton('수정 완료', _updateMemo),
+                _buildActionButton('수정', _updateMemo),
               ],
             ),
           ],
