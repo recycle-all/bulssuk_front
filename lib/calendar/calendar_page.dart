@@ -586,50 +586,92 @@ class _CalendarPageState extends State<CalendarPage> {
                         ],
                       );
                     },
-                    markerBuilder: (context, day, focusedDay) {
+                         markerBuilder: (context, day, focusedDay) {
                       final strippedDay = _stripTime(day);
                       final hasChecked = _checkedDays.any((checkedDay) => _stripTime(checkedDay) == strippedDay);
                       final hasMemo = memoDates.contains(strippedDay);
-                      final hasEvent = _events.any((event) =>
-                      event['date'] == strippedDay);
+                      final hasEvent = _events.any((event) => _stripTime(event['date']) == strippedDay);
+
+                      print('Marker for $day: hasChecked=$hasChecked, hasMemo=$hasMemo, hasEvent=$hasEvent');
+
                       if (hasChecked) {
-                        return Container(
-                          margin: const EdgeInsets.all(4.0),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFB0F4E6), // 민트색 배경
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${day.day}',
-                              style: const TextStyle(color: Colors.black), // 텍스트 색상
+                        // hasChecked를 큰 동그라미로 유지
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              margin: const EdgeInsets.all(4.0),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFB0F4E6), // 민트색 배경
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${day.day}', // 날짜 숫자 표시
+                                  style: const TextStyle(color: Colors.black), // 텍스트 색상
+                                ),
+                              ),
                             ),
-                          ),
+                            if (hasMemo)
+                              Positioned(
+                                bottom: 4,
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue, // 파란색 (메모)
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            if (hasEvent)
+                              Positioned(
+                                bottom: 4,
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.yellow, // 노란색 (이벤트)
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
                         );
-                      }
-                      if (hasMemo) {
-                        return Positioned(
-                          bottom: 4,
-                          child: Icon(
-                            Icons.circle,
-                            size: 6,
-                            color: Colors.blue, // 메모 파란 점
-                          ),
+                      } else if (hasMemo || hasEvent) {
+                        // hasMemo와 hasEvent는 작은 점으로 표시
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            if (hasMemo)
+                              Positioned(
+                                bottom: 4,
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue, // 파란색 (메모)
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            if (hasEvent)
+                              Positioned(
+                                bottom: 4,
+                                child: Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.yellow, // 노란색 (이벤트)
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
                         );
                       }
 
-                      if (hasEvent) {
-                        return Positioned(
-                          bottom: 4,
-                          child: Icon(
-                            Icons.circle,
-                            size: 6,
-                            color: Colors.yellow, // 이벤트 노란 점
-                          ),
-                        );
-                      }
-
-                      return null;
+                      return null; // 조건이 없으면 표시하지 않음
                     },
                   ),
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
