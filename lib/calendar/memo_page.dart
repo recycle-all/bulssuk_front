@@ -135,8 +135,12 @@ class _MemoPageState extends State<MemoPage> {
   @override
   Widget build(BuildContext context) {
     final isButtonEnabled = _alarmName.isNotEmpty; // 버튼 활성화 상태
+    return GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus(); // 화면 터치 시 키보드 숨기기
+        },
 
-    return Scaffold(
+    child:Scaffold(
       appBar: AppBar(
         title: const Text('알림 설정'),
         backgroundColor: Colors.white, // AppBar 배경색 변경 (필요에 따라 수정)
@@ -165,93 +169,96 @@ class _MemoPageState extends State<MemoPage> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우 정렬
-              children: [
-                Text(
-                  '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일 ${_getWeekday(widget.selectedDate.weekday)}요일',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Row(
-                  children: [
-                    const Text(
-                      '알림 설정',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(width: 8), // 텍스트와 스위치 간 간격
-                    CupertinoSwitch(
-                      value: _alarmEnabled,
-                      activeTrackColor: CupertinoColors.activeGreen,
-                      thumbColor: CupertinoColors.white,
-                      trackColor: CupertinoColors.inactiveGray,
-                      onChanged: (value) {
-                        setState(() {
-                          _alarmEnabled = value; // 토글 상태 업데이트
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _buildLabel('알림 이름'),
-            const SizedBox(height: 12),
-            TextField(
-              decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
-              onChanged: (value) {
-                setState(() {
-                  _alarmName = value;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우로 정렬
-              children: [
-                _buildLabel('알림 시간'),
-                GestureDetector(
-                  onTap: () => _selectTime(context), // 클릭 시 시간 선택 창 열기
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD3D3D3), // 회색 배경
-                      borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
-                    ),
-                    child: Text(
-                      _selectedTime != null
-                          ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
-                          : '11:00', // 기본값으로 "11:00" 표시
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.black, // 텍스트 색상
+      body: SingleChildScrollView( // 스크롤 가능하도록 변경
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우 정렬
+                children: [
+                  Text(
+                    '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일 ${_getWeekday(widget.selectedDate.weekday)}요일',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Row(
+                    children: [
+                      const Text(
+                        '알림 설정',
+                        style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 8),
+                      CupertinoSwitch(
+                        value: _alarmEnabled,
+                        activeTrackColor: CupertinoColors.activeGreen,
+                        thumbColor: CupertinoColors.white,
+                        trackColor: CupertinoColors.inactiveGray,
+                        onChanged: (value) {
+                          setState(() {
+                            _alarmEnabled = value; // 토글 상태 업데이트
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildLabel('알림 이름'),
+              const SizedBox(height: 12),
+              TextField(
+                decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
+                onChanged: (value) {
+                  setState(() {
+                    _alarmName = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우 정렬
+                children: [
+                  _buildLabel('알림 시간'),
+                  GestureDetector(
+                    onTap: () => _selectTime(context), // 클릭 시 시간 선택 창 열기
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD3D3D3), // 회색 배경
+                        borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
+                      ),
+                      child: Text(
+                        _selectedTime != null
+                            ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                            : '11:00', // 기본값으로 "11:00" 표시
+                        style: const TextStyle(
+                          fontSize: 16.0,
+                          color: Colors.black, // 텍스트 색상
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            _buildFrequencyOptions(),
-            const SizedBox(height: 20),
-            _buildLabel('알림 메모'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _memoController,
-              maxLines: 5,
-              decoration: _buildInputDecoration('메모를 입력하세요.'),
-            ),
-            const SizedBox(height: 20)
-          ],
+                ],
+              ),
+              const SizedBox(height: 30),
+              _buildFrequencyOptions(),
+              const SizedBox(height: 20),
+              _buildLabel('알림 메모'),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _memoController,
+                maxLines: 5,
+                decoration: _buildInputDecoration('메모를 입력하세요.'),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
 
   // UI Helper: 라벨 빌더

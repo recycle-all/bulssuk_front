@@ -191,104 +191,109 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const TopNavigationSection(
-        title: '알람 수정',
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return GestureDetector(
+      onTap: () {
+        FocusScope.of(context).unfocus(); // 화면 터치 시 키보드 숨기기
+      },
+      child: Scaffold(
+        appBar: const TopNavigationSection(
+          title: '알람 수정',
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      '알림 설정',
-                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    Text(
+                      '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(width: 8),
-                    CupertinoSwitch(
-                      value: _alarmEnabled,
-                      activeTrackColor: CupertinoColors.activeGreen,
-                      thumbColor: CupertinoColors.white,
-                      trackColor: CupertinoColors.inactiveGray,
-                      onChanged: (value) {
-                        setState(() {
-                          _alarmEnabled = value;
-                        });
-                      },
+                    Row(
+                      children: [
+                        const Text(
+                          '알림 설정',
+                          style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 8),
+                        CupertinoSwitch(
+                          value: _alarmEnabled,
+                          activeTrackColor: CupertinoColors.activeGreen,
+                          thumbColor: CupertinoColors.white,
+                          trackColor: CupertinoColors.inactiveGray,
+                          onChanged: (value) {
+                            setState(() {
+                              _alarmEnabled = value;
+                            });
+                          },
+                        ),
+                      ],
                     ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _buildLabel('알림 이름'),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _nameController,
+                  decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildLabel('알림 시간'),
+                    GestureDetector(
+                      onTap: () => _selectTime(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD3D3D3),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Text(
+                          _selectedTime != null
+                              ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                              : '11:00',
+                          style: const TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                _buildFrequencyOptions(),
+                const SizedBox(height: 20),
+                _buildLabel('알림 메모'),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _memoController,
+                  maxLines: 5,
+                  decoration: _buildInputDecoration('메모를 입력하세요.'),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildActionButton('삭제', _deleteMemo),
+                    _buildActionButton('수정', _updateMemo),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            _buildLabel('알림 이름'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _nameController,
-              decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // 좌우로 정렬
-              children: [
-                _buildLabel('알림 시간'),
-                GestureDetector(
-                  onTap: () => _selectTime(context), // 클릭 시 시간 선택 창 열기
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD3D3D3), // 회색 배경
-                      borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
-                    ),
-                    child: Text(
-                      _selectedTime != null
-                          ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
-                          : '11:00', // 기본값으로 "11:00" 표시
-                      style: const TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.black, // 텍스트 색상
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            _buildFrequencyOptions(),
-            const SizedBox(height: 20),
-            _buildLabel('알림 메모'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _memoController,
-              maxLines: 5,
-              decoration: _buildInputDecoration('메모를 입력하세요.'),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildActionButton('삭제', _deleteMemo),
-                _buildActionButton('수정', _updateMemo),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
-
 
   Widget _buildLabel(String text) {
     return Text(
