@@ -51,13 +51,23 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
         Uri.parse(
           '$URL/date?user_id=$userId&user_calendar_date=${widget.selectedDate.toIso8601String().split('T')[0]}',
         ),
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> fetchedMemos = jsonDecode(response.body);
+
+        // user_calendar_list == true 데이터만 필터링
+        final filteredMemos = fetchedMemos.where((memo) => memo['user_calendar_list'] == true).toList();
+
         setState(() {
-          memoList = fetchedMemos;
+          memoList = filteredMemos; // 필터링된 데이터만 업데이트
         });
+
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('메모를 불러오지 못했습니다: ${response.body}')),
@@ -75,6 +85,7 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white, // AppBar 배경색 변경
@@ -91,9 +102,10 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
 
 
           return Card(
-            color: const Color(0xFFFCF9EC),
+            color: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0), // 둥근 모서리
+              borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
+              side: const BorderSide(color: Color(0xFFCCCCCC)),
             ),
             margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // 외부 여백
             child: Padding(
@@ -127,7 +139,7 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
                     ),
                   ),
                   // 수정 버튼
-                  ElevatedButton(
+                  IconButton(
                     onPressed: () async {
                       final result = await Navigator.push(
                         context,
@@ -138,31 +150,22 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
                           ),
                         ),
                       );
-
                       if (result == true) {
                         _refreshMemoList();
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white, // 버튼 배경색
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
-                        side: const BorderSide(color: Color(0xFFCCCCCC)), // 테두리
-                      ),
+                    icon: const Icon(
+                      Icons.edit, // edit 아이콘
+                      color: Colors.black, // 아이콘 색상
+                      size: 24.0, // 아이콘 크기
                     ),
-                    child: const Text(
-                      '수정',
-                      style: TextStyle(
-                        color: Colors.black, // 텍스트 색상
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    splashRadius: 30.0, // 클릭 반경 크기
+                    tooltip: '수정', // 버튼 위에 마우스를 올렸을 때 표시되는 툴팁
                   ),
                 ],
               ),
             ),
           );
-
         },
       ),
     );

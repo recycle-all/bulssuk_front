@@ -15,7 +15,8 @@ class MemoModalPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      color: Colors.white, // 모달 배경색 설정 (원하는 색상으로 변경 가능)
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: SingleChildScrollView(
         child: Column(
