@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../auth/login/login_page.dart';
 import '../widgets/top_nav.dart';
 import '../widgets/bottom_nav.dart';
@@ -10,7 +11,6 @@ import 'inquiry&FAQ/FAQ_page.dart';
 import 'inquiry&FAQ/quesetion_page.dart';
 import 'myCoupon/coupon_page.dart';
 import 'point/point_page.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -21,60 +21,64 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final String? _url = dotenv.env['URL']; // 백엔드 API URL
-  String _userName = 'Guest'; // 기본값 설정
-  int _totalPoints = 0; // 총 포인트 기본값
-  bool _isLoadingPoints = true; // 포인트 로딩 상태
+  final String? _url = dotenv.env['URL'];
+  String _userName = 'Guest';
+  int _totalPoints = 0;  // 보유 포인트 추가
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName(); // Secure Storage에서 사용자 이름 로드
-    _fetchTotalPoints(); // 서버에서 총 포인트 가져오기
+    _loadUserName();
+    _fetchTotalPoints();  // 보유 포인트 로드
   }
 
-  // Secure Storage에서 사용자 이름 로드
+  // ✅ Secure Storage에서 사용자 이름 로드
   Future<void> _loadUserName() async {
     try {
-      final userName = await _storage.read(key: 'user_name'); // user_name 키로 데이터 읽기
-
+      final userName = await _storage.read(key: 'user_name');
       setState(() {
-        _userName = userName ?? 'Guest'; // user_name이 없으면 기본값으로 설정
+        _userName = userName ?? 'Guest';
       });
-
-      print('user_name: $_userName'); // 디버깅 로그
     } catch (e) {
       print('user_name을 로드하는 중 오류 발생: $e');
     }
   }
 
-  // 서버에서 총 포인트 가져오기
+  // ✅ 보유 포인트 불러오는 메서드 추가
   Future<void> _fetchTotalPoints() async {
     try {
-      final token = await _storage.read(key: 'jwt_token'); // 저장된 JWT 토큰 읽기
+      if (_url == null) throw Exception('API URL이 설정되지 않았습니다.');
+
+      final token = await _storage.read(key: 'jwt_token');
+      if (token == null) throw Exception('로그인이 필요합니다.');
+
       final response = await http.get(
-        Uri.parse('$_url/total_point'), // 총 포인트 조회 API 엔드포인트
+        Uri.parse('$_url/total_point'),
         headers: {
-          'Authorization': 'Bearer $token', // Bearer 토큰 헤더 추가
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        final int totalPoints = (data['totalPoints'] ?? 0).toInt();
+        print('✅ 데이터베이스에서 가져온 보유 포인트: $totalPoints');
         setState(() {
-          _totalPoints = data['totalPoints']; // 서버에서 가져온 총 포인트
-          _isLoadingPoints = false; // 로딩 완료
+          _totalPoints = totalPoints;
+          _isLoading = false;
         });
       } else {
-        print('포인트 가져오기 실패: ${response.statusCode}');
-        setState(() {
-          _isLoadingPoints = false; // 로딩 실패로 상태 업데이트
-        });
+        throw Exception('보유 포인트 조회 실패');
       }
-    } catch (e) {
-      print('포인트 로드 중 오류 발생: $e');
+    } catch (error) {
+      print('❌ 오류 발생: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('보유 포인트 불러오기 실패: $error')),
+      );
       setState(() {
-        _isLoadingPoints = false; // 에러 발생 시 로딩 상태 업데이트
+        _isLoading = false;
       });
     }
   }
@@ -82,11 +86,10 @@ class _DashboardState extends State<Dashboard> {
   /// 로그아웃 기능
   Future<void> logout(BuildContext context) async {
     try {
-      await _storage.deleteAll(); // 모든 Secure Storage 데이터 삭제
+      await _storage.deleteAll();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("로그아웃 성공!")),
       );
-
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -100,9 +103,7 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const TopNavigationSection(
-        title: '마이페이지',
-      ),
+      appBar: const TopNavigationSection(title: '마이페이지'),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -113,7 +114,6 @@ class _DashboardState extends State<Dashboard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // user_name 표시
                   Text(
                     '$_userName님',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -123,9 +123,9 @@ class _DashboardState extends State<Dashboard> {
                   Container(
                     width: 150,
                     height: 150,
-                    decoration: BoxDecoration(shape: BoxShape.circle),
+                    decoration: const BoxDecoration(shape: BoxShape.circle),
                     child: Image.asset(
-                      'assets/tree2.png', // 나무 이미지 경로
+                      'assets/tree2.png',
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -133,12 +133,9 @@ class _DashboardState extends State<Dashboard> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     decoration: BoxDecoration(
-                      color: Colors.white, // 배경색
-                      border: Border.all(
-                        color: const Color(0xFF67EACA), // 테두리 색상
-                        width: 1.5, // 테두리 두께
-                      ),
-                      borderRadius: BorderRadius.circular(12.0), // 테두리 둥글게
+                      color: Colors.white,
+                      border: Border.all(color: const Color(0xFF67EACA), width: 1.5),
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: const Text(
                       '현재 나무 상태',
@@ -150,34 +147,28 @@ class _DashboardState extends State<Dashboard> {
               ),
             ),
 
-            // 포인트 정보 카드
+            /// 포인트 카드 (서버에서 가져온 값으로 표시)
             Card(
-              color: const Color(0xFFB0F4E6), // 카드 배경색 변경
+              color: const Color(0xFFB0F4E6),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 title: const Text('내 포인트'),
-                trailing: _isLoadingPoints
-                    ? const CircularProgressIndicator() // 로딩 중
+                trailing: _isLoading
+                    ? const CircularProgressIndicator() // 로딩 중이면 로딩 표시
                     : Text(
-                  '${_totalPoints}p',
+                  '$_totalPoints p',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 onTap: () {
-                  // 포인트 사용 내역 페이지로 이동
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => PointPage(
-                        totalPoints: _totalPoints, // 총 포인트 전달
-                      ),
-                    ),
+                    MaterialPageRoute(builder: (context) => const PointPage()),
                   );
                 },
               ),
             ),
 
             const SizedBox(height: 20),
-            // 메뉴 리스트
             ListView(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -217,7 +208,6 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  // 메뉴 아이템 빌더
   Widget _buildMenuItem(BuildContext context, String title, VoidCallback onTap) {
     return ListTile(
       title: Text(title),
