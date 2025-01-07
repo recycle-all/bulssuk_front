@@ -28,6 +28,7 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
   late TextEditingController _memoController;
   late bool _alarmEnabled; // 알림 활성화 상태
   final FlutterSecureStorage _storage = FlutterSecureStorage();
+  TimeOfDay? _selectedTime; // 선택된 시간
   String? _userId;
 
   @override
@@ -47,6 +48,19 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
 
 
     _loadUserId();
+  }
+
+  // 시간 선택 함수
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (pickedTime != null && pickedTime != _selectedTime) {
+      setState(() {
+        _selectedTime = pickedTime;
+      });
+    }
   }
 
   // 사용자 ID 로드
@@ -173,9 +187,34 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${widget.selectedDate.year}년 ${widget.selectedDate.month}월 ${widget.selectedDate.day}일',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    const Text(
+                      '알림 설정',
+                      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 8),
+                    CupertinoSwitch(
+                      value: _alarmEnabled,
+                      activeTrackColor: CupertinoColors.activeGreen,
+                      thumbColor: CupertinoColors.white,
+                      trackColor: CupertinoColors.inactiveGray,
+                      onChanged: (value) {
+                        setState(() {
+                          _alarmEnabled = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             _buildLabel('알림 이름'),
@@ -185,20 +224,25 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
               decoration: _buildInputDecoration('알림 이름을 입력하세요.'),
             ),
             const SizedBox(height: 20),
-            _buildLabel('알림 설정'),
-            CupertinoSwitch(
-              value: _alarmEnabled,
-              activeTrackColor: CupertinoColors.activeGreen,
-              thumbColor: CupertinoColors.white,
-              trackColor: CupertinoColors.inactiveGray,
-              onChanged: (value) {
-                setState(() {
-                  _alarmEnabled = value;
-                });
-                print('Alarm enabled changed: $_alarmEnabled'); // 디버깅용 출력
-              },
+            _buildLabel('알림 시간'),
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => _selectTime(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFCCCCCC)),
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                child: Text(
+                  _selectedTime != null
+                      ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+                      : '시간을 선택하세요.',
+                  style: const TextStyle(fontSize: 16.0),
+                ),
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             _buildFrequencyOptions(),
             const SizedBox(height: 20),
             _buildLabel('알림 메모'),
@@ -221,6 +265,7 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
       ),
     );
   }
+
 
   Widget _buildLabel(String text) {
     return Text(
@@ -258,13 +303,18 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.0),
               ),
+              padding: const EdgeInsets.symmetric(vertical: 14.0), // 버튼 내부 패딩 (높이 조정)
+              minimumSize: const Size(80, 50), // 최소 크기 설정 (너비, 높이)
             ),
             onPressed: () {
               setState(() {
                 _alarmFrequency = label;
               });
             },
-            child: Text(label),
+            child: Text(label,
+              style: const TextStyle(
+                color: Colors.black, // 모든 버튼의 텍스트 색상
+              ),),
           ),
         ),
       ))
@@ -279,7 +329,8 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 50.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(vertical: 14.0), // 버튼 내부 패딩 (높이 조정)
+        fixedSize: const Size(200, 50), // 버튼 크기 고정
       ),
       onPressed: onPressed,
       child: Text(label, style: const TextStyle(color: Colors.black)),
