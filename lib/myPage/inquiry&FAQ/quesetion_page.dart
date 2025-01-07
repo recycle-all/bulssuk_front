@@ -300,7 +300,7 @@ class QuestionHistory extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬 유지
                             children: [
                               Text(
                                 inquiry['question_title'] ?? '제목 없음',
@@ -346,42 +346,45 @@ class QuestionHistory extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
                           children: [
-                            const Text(
-                              '문의 내용:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14.0,
+                            const Align(
+                              alignment: Alignment.centerLeft, // 완전한 왼쪽 정렬을 위해 추가
+                              child: Text(
+                                '문의 내용:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8.0),
-                            Text(
-                              inquiry['question_content'] ?? '내용 없음',
-                              style: const TextStyle(
-                                fontSize: 14.0,
+                            Align(
+                              alignment: Alignment.centerLeft, // 완전한 왼쪽 정렬
+                              child: Text(
+                                inquiry['question_content'] ?? '내용 없음',
+                                style: const TextStyle(fontSize: 14.0),
                               ),
-                              textAlign: TextAlign.left, // 왼쪽 정렬
-                              overflow: TextOverflow.visible, // 줄바꿈 허용
                             ),
                             const SizedBox(height: 16.0),
-                            const Text(
-                              '관리자 답변:',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14.0,
-                                color: Colors.green,
+                            const Align(
+                              alignment: Alignment.centerLeft, // 왼쪽 정렬 유지
+                              child: Text(
+                                '관리자 답변:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14.0,
+                                  color: Colors.green,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8.0),
-                            Text(
-                              inquiry['answer_content'] ??
-                                  '답변이 아직 등록되지 않았습니다.',
-                              style: const TextStyle(
-                                fontSize: 14.0,
+                            Align(
+                              alignment: Alignment.centerLeft, // 왼쪽 정렬 유지
+                              child: Text(
+                                inquiry['answer_content'] ?? '답변이 아직 등록되지 않았습니다.',
+                                style: const TextStyle(fontSize: 14.0),
                               ),
-                              textAlign: TextAlign.left, // 왼쪽 정렬
-                              overflow: TextOverflow.visible, // 줄바꿈 허용
                             ),
                           ],
                         ),
