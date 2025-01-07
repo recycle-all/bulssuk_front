@@ -324,7 +324,7 @@ class _TreePageState extends State<TreePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PointPage(totalPoints: points), // totalPoints 전달
+                        builder: (context) => PointPage(), // totalPoints 전달
                       ),
                     );
                   },
