@@ -44,9 +44,16 @@ class _ReupcyclingPageState extends State<ReupcyclingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: TopNavigationSection(
+      appBar: AppBar(
         backgroundColor: Colors.white,
-        title: '리사이클링, 업사이클링 기업',
+        title: Text(
+          '리사이클링, 업사이클링 기업', // 제목 텍스트
+          style: TextStyle(
+            fontWeight: FontWeight.normal, // 볼드 제거
+            fontSize: 18, // 텍스트 크기 조정
+            color: Colors.black, // 텍스트 색상 변경
+          ),
+        ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _companyDetailsFuture,

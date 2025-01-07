@@ -51,7 +51,11 @@ class _RecyclingMenuPageState extends State<RecyclingMenuPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(widget.categoryName), // 전달받은 카테고리 이름을 제목으로 설정
+        title: Text(widget.categoryName,
+          style: TextStyle(
+            fontSize: 18, // 텍스트 크기 조정
+          ),
+        ), // 전달받은 카테고리 이름을 제목으로 설정
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

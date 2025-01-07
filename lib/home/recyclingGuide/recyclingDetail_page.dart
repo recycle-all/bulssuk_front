@@ -49,7 +49,11 @@ class _RecyclingDetailPageState extends State<RecyclingDetailPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(widget.subcategoryName), // 전달받은 카테고리 이름을 제목으로 설정
+        title: Text(widget.subcategoryName,
+          style: TextStyle(
+            fontSize: 18, // 텍스트 크기 조정
+          ),
+        ), // 전달받은 카테고리 이름을 제목으로 설정
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

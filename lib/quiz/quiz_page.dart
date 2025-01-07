@@ -261,7 +261,12 @@ class _QuizPageState extends State<QuizPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('환경 OX 퀴즈', style: TextStyle(color: Colors.black)),
+        title: Text('환경 OX 퀴즈',
+          style: TextStyle(
+          fontSize: 18, // 텍스트 크기 조정
+          color: Colors.black, // 텍스트 색상 변경
+        ),
+        ),
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(

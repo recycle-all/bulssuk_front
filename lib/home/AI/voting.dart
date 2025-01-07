@@ -163,7 +163,10 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
       appBar: AppBar(
         title: const Text(
           '분리수거 결과 투표창',
-          style: TextStyle(color: Colors.black),
+            style: TextStyle(
+              fontSize: 18, // 텍스트 크기 조정
+              color: Colors.black, // 텍스트 색상 변경
+            ),
         ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
