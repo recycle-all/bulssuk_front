@@ -592,7 +592,7 @@ class _CalendarPageState extends State<CalendarPage> {
                       final hasMemo = memoDates.contains(strippedDay);
                       final hasEvent = _events.any((event) => _stripTime(event['date']) == strippedDay);
 
-                      print('Marker for $day: hasChecked=$hasChecked, hasMemo=$hasMemo, hasEvent=$hasEvent');
+                      // print('Marker for $day: hasChecked=$hasChecked, hasMemo=$hasMemo, hasEvent=$hasEvent');
 
                       if (hasChecked) {
                         // hasChecked를 큰 동그라미로 유지
