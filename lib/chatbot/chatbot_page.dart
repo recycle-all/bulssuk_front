@@ -13,6 +13,7 @@ class ChatBotPage extends StatefulWidget {
 class _ChatBotPageState extends State<ChatBotPage> {
   WebSocketChannel? channel;
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController(); // 스크롤 컨트롤러 추가
   List<Map<String, dynamic>> messages = [];
   final FlutterSecureStorage _storage = FlutterSecureStorage();
   int? userNo;
@@ -78,6 +79,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
           messages = List<Map<String, dynamic>>.from(data['chat_logs']);
         });
         print('Loaded chat history: $messages');
+        _scrollToBottom();
       } else {
         print('Failed to fetch chat history. Status code: ${response.statusCode}');
       }
@@ -95,22 +97,54 @@ class _ChatBotPageState extends State<ChatBotPage> {
 
     channel!.stream.listen(
           (message) {
-        final decodedMessage = utf8.decode(message.runes.toList());
-        final parsedMessage = jsonDecode(decodedMessage);
-        final sender = parsedMessage['sender'];
-        final content = parsedMessage['message'];
-
-        setState(() {
-          messages.add({"sender": sender, "message": content});
-        });
+        try {
+          // 메시지가 문자열인지 확인
+          if (message is String) {
+            final parsedMessage = jsonDecode(message);
+            _handleMessage(parsedMessage);
+          } else if (message is List<int>) {
+            // 메시지가 바이너리 데이터일 경우
+            final decodedMessage = utf8.decode(message, allowMalformed: true);
+            final parsedMessage = jsonDecode(decodedMessage);
+            _handleMessage(parsedMessage);
+          } else {
+            print('Unsupported message type: $message');
+          }
+        } catch (e) {
+          print('Error decoding WebSocket message: $e');
+        }
       },
-      onError: (error) => print("WebSocket 오류 발생: $error"),
+      onError: (error) {
+        print("WebSocket 오류 발생: $error");
+      },
       onDone: () {
-        print("WebSocket 연결 종료");
+        print("WebSocket 연결 종료. 재연결 시도...");
         channel = null;
-        _connectWebSocket();
+        Future.delayed(Duration(seconds: 2), _connectWebSocket); // 2초 대기 후 재연결
       },
     );
+  }
+
+  void _handleMessage(Map<String, dynamic> message) {
+    final sender = message['sender'];
+    final content = message['message'];
+    if (sender == 'user') return;
+    setState(() {
+      messages.add({"sender": sender, "message": content});
+      _scrollToBottom();
+    });
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   void sendMessage() {
@@ -122,6 +156,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
       setState(() {
         messages.add({"sender": "user", "message": messageText});
         _controller.clear();
+        _scrollToBottom();
       });
     }
   }
@@ -130,6 +165,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
   void dispose() {
     channel?.sink.close(status.goingAway);
     _controller.dispose();
+    _scrollController.dispose(); // 스크롤 컨트롤러 해제
     super.dispose();
   }
 
@@ -140,8 +176,9 @@ class _ChatBotPageState extends State<ChatBotPage> {
       body: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(bottom: 80),
+            padding: const EdgeInsets.only(bottom: 80), // 입력창 높이만큼 패딩 추가
             child: ListView.builder(
+              controller: _scrollController,
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
@@ -182,13 +219,17 @@ class _ChatBotPageState extends State<ChatBotPage> {
           ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Padding(
+            child: Container(
+              color: Colors.white, // 입력창 배경색 설정
               padding: const EdgeInsets.only(left: 15, bottom: 25), // 입력창 외부 간격 추가
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: TextFormField(
                       controller: _controller,
+                      minLines: 1, // 최소 한 줄
+                      maxLines: null, // 줄 수 무제한
+                      keyboardType: TextInputType.multiline, // 여러 줄 입력 가능
                       decoration: InputDecoration(
                         hintText: '메시지를 입력하세요',
                         border: OutlineInputBorder(
@@ -196,11 +237,11 @@ class _ChatBotPageState extends State<ChatBotPage> {
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide(color: Color(0xFFB0F4E6), width: 2), // 기본 테두리
+                          borderSide: BorderSide(color: Color(0xFFB0F4E6), width: 2),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
-                          borderSide: BorderSide(color: Color(0xFFB0F4E6), width: 2), // 포커스 테두리
+                          borderSide: BorderSide(color: Color(0xFFB0F4E6), width: 2),
                         ),
                       ),
                     ),
@@ -213,10 +254,10 @@ class _ChatBotPageState extends State<ChatBotPage> {
                 ],
               ),
             ),
-          )
-
+          ),
         ],
       ),
     );
   }
+
 }
