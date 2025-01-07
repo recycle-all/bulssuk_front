@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/top_nav.dart'; // 공통 AppBar 위젯 import
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+final URL = dotenv.env['URL'];
 
 class MemoPage extends StatefulWidget {
   final DateTime selectedDate;
@@ -48,7 +51,7 @@ class _MemoPageState extends State<MemoPage> {
   Future<void> _loadExistingAlarm() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8001/alarm/${widget.alarmId}'),
+        Uri.parse('$URL/alarm/${widget.alarmId}'),
       );
 
       if (response.statusCode == 200) {
@@ -102,7 +105,7 @@ class _MemoPageState extends State<MemoPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8001/alarm'), // 백엔드의 알람 등록 API 확인
+        Uri.parse('$URL/alarm'), // 백엔드의 알람 등록 API 확인
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(alarmData),
       );
