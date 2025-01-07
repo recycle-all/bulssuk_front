@@ -51,13 +51,23 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
         Uri.parse(
           '$URL/date?user_id=$userId&user_calendar_date=${widget.selectedDate.toIso8601String().split('T')[0]}',
         ),
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> fetchedMemos = jsonDecode(response.body);
+
+        // user_calendar_list == true 데이터만 필터링
+        final filteredMemos = fetchedMemos.where((memo) => memo['user_calendar_list'] == true).toList();
+
         setState(() {
-          memoList = fetchedMemos;
+          memoList = filteredMemos; // 필터링된 데이터만 업데이트
         });
+
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('메모를 불러오지 못했습니다: ${response.body}')),
@@ -75,6 +85,7 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white, // AppBar 배경색 변경
