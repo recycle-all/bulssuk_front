@@ -496,12 +496,6 @@ class _CalendarPageState extends State<CalendarPage> {
       ),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque, // 화면 어디든 감지 가능
-        onTap: () {
-          // 화면 아무 곳이나 클릭 시 이벤트 창 닫기
-          setState(() {
-            _selectedDay = null; // 선택된 날짜 초기화
-          });
-        },
         child: Stack(
           children: [
             Column(
@@ -678,6 +672,68 @@ class _CalendarPageState extends State<CalendarPage> {
                   headerStyle: const HeaderStyle(
                     formatButtonVisible: false,
                     titleCentered: true,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFB0F4E6), // 민트색 (출석 체크 완료)
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            '출석 체크 완료',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.yellow, // 노란색 (환경 관련 날짜)
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            '환경 관련 날짜',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.blue, // 파란색 (내가 저장한 메모)
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            '내가 저장한 메모',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 
