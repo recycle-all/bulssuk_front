@@ -737,7 +737,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
 
                 // 출석 체크 버튼
                 Padding(
