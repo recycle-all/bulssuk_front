@@ -263,7 +263,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10), // 간격 추가
+                  const SizedBox(height: 20), // 간격 추가
                   // 버튼 영역
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -276,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFCF9EC),
                           foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 14),
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -327,21 +327,18 @@ class _HomePageState extends State<HomePage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFCF9EC), // 버튼 배경색
                           foregroundColor: Colors.black, // 버튼 글자색
-                          padding: const EdgeInsets.symmetric(horizontal: 58, vertical: 14),
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
                         child: const Text('투표 게시판'),
                       ),
-
-
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
 
             // 2. 뉴스 영역
             GestureDetector(
@@ -414,7 +411,7 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
-            const Divider(),
+            const SizedBox(height: 20),
 
             // 3. AI 영역
             Padding(
@@ -422,11 +419,16 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 왼쪽 정렬
                 children: [
+                  Text(
+                    '이 쓰레기 어떻게 버리지?',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    textAlign: TextAlign.start,
+                  ),
                   const Text(
                     'AI한테 물어보기!',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 30),
                   Center( // 아이콘을 가로 세로 중앙 정렬
                     child: GestureDetector(
                       onTap: _openCamera,
@@ -451,12 +453,13 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            const Divider(),
+            const SizedBox(height: 20),
 
             // 4. guide 영역
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
+              child:
+              Text(
                 '분리수거 대분류',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -492,6 +495,7 @@ class _HomePageState extends State<HomePage> {
                 }),
               ),
             ),
+            const SizedBox(height: 20),
 
             // 5. reupcycling 영역 (가로 스크롤)
             const Padding(
@@ -536,6 +540,7 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
