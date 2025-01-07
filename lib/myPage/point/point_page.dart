@@ -116,7 +116,7 @@ class _PointPageState extends State<PointPage> {
                 '보유 포인트',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 16.0),
               Text(
                 '${widget.totalPoints}p', // 총 포인트 표시
                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // 더 큰 텍스트 크기
@@ -128,77 +128,66 @@ class _PointPageState extends State<PointPage> {
     );
   }
 
+  // ✅ 포인트 내역 카드 (위치 정렬 개선 및 null 방지)
   Widget _buildPointHistoryList() {
-    return Container(
-      width: double.infinity, // 전체 화면 너비
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: ListView.builder(
-        itemCount: _pointHistory.length,
-        itemBuilder: (context, index) {
-          final item = _pointHistory[index];
-          final isAdd = item['point_status'] == 'ADD'; // 포인트 증가/감소 확인
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0), // 카드 모서리 둥글게
-            ),
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            elevation: 2.0,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0), // 내부 패딩 추가
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center, // 세로 가운데 정렬
-                    children: [
-                      Expanded(
-                        flex: 3, // 왼쪽 영역
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 5.0), // 왼쪽 공백 추가
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item['point_reason'],
-                                style: const TextStyle(
-                                  fontSize: 18, // 포인트 사유 텍스트 크기
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 15.0), // 간격 추가
-                              Text(
-                                item['created_at'],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey, // 날짜 텍스트 색상
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+    return ListView.builder(
+      itemCount: _pointHistory.length,
+      itemBuilder: (context, index) {
+        final item = _pointHistory[index];
+        final isAdd = item['point_status'] == 'ADD';
+        final pointAmount = item['point_amount'];
+        final pointReason = item['point_reason'];
+        final createdAt = item['created_at'];
+        final pointTotal = item['point_total'] ?? '0'; // ✅ null 방지 적용
+
+        return Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          elevation: 1.0,
+          child: Padding(
+            padding: const EdgeInsets.all(25.0),
+            child: Column(
+              children: [
+                // ✅ 포인트 사유와 포인트 증감 (한 줄 정렬)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      pointReason,
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '${isAdd ? '+ ' : '- '}${pointAmount.abs()}p',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isAdd ? Colors.green : Colors.red,
                       ),
-                      Expanded(
-                        flex: 1, // 오른쪽 영역
-                        child: Align(
-                          alignment: Alignment.centerRight, // 오른쪽 가운데 정렬
-                          child: Text(
-                            '${isAdd ? '+ ' : '  '}${item['point_amount']}p',
-                            style: TextStyle(
-                              fontSize: 18, // 포인트 금액 텍스트 크기
-                              fontWeight: FontWeight.bold,
-                              color: isAdd ? Colors.green : Colors.red, // 색상 변경
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20.0),
+
+                // ✅ 실행 날짜와 당시 보유 포인트 (오른쪽 정렬)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      createdAt,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    Text(
+                      '$pointTotal p',
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
