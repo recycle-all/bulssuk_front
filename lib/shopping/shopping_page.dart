@@ -119,17 +119,18 @@ class _ShoppingPageState extends State<ShoppingPage> {
       showDialog(
         context: context,
         barrierColor: Colors.transparent, // 배경을 투명하게 설정
-        builder: (context) => AlertDialog(
-          backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
-          title: Text('오류'),
-          content: Text('사용자 포인트 정보를 불러올 수 없습니다.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('확인'),
+        builder: (context) =>
+            AlertDialog(
+              backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
+              title: Text('오류'),
+              content: Text('사용자 포인트 정보를 불러올 수 없습니다.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('확인'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
       return;
     }
@@ -138,85 +139,90 @@ class _ShoppingPageState extends State<ShoppingPage> {
       showDialog(
         context: context,
         barrierColor: Colors.transparent, // 배경을 투명하게 설정
-        builder: (context) => AlertDialog(
-          backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
-          title: Text('구매 가능'),
-          content: Text('상품을 구매하시겠습니까?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('취소'),
+        builder: (context) =>
+            AlertDialog(
+              backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
+              title: Text('구매 가능'),
+              content: Text('상품을 구매하시겠습니까?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('취소'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // 구매 로직 추가
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('구매'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                // 구매 로직 추가
-                Navigator.of(context).pop();
-              },
-              child: Text('구매'),
-            ),
-          ],
-        ),
       );
     } else {
       showDialog(
         context: context,
         barrierColor: Colors.transparent, // 배경을 투명하게 설정
-        builder: (context) => AlertDialog(
-          backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
-          title: Text('구매 불가'),
-          content: Text('포인트가 부족합니다.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('확인'),
+        builder: (context) =>
+            AlertDialog(
+              backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
+              title: Text('구매 불가'),
+              content: Text('포인트가 부족합니다.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('확인'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
   }
 
   void handleCouponExchange(int productCouponNo, String productName) {
-    bool hasCoupon = userCoupons.any((coupon) => coupon['coupon_no'] == productCouponNo);
+    bool hasCoupon = userCoupons.any((coupon) =>
+    coupon['coupon_no'] == productCouponNo);
 
     if (hasCoupon) {
       showDialog(
         context: context,
         barrierColor: Colors.transparent, // 배경을 투명하게 설정
-        builder: (context) => AlertDialog(
-          backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
-          title: Text('교환 가능'),
-          content: Text('$productName 교환권을 사용하시겠습니까?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('취소'),
+        builder: (context) =>
+            AlertDialog(
+              backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
+              title: Text('교환 가능'),
+              content: Text('$productName 교환권을 사용하시겠습니까?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('취소'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // 교환 로직 추가
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('교환'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                // 교환 로직 추가
-                Navigator.of(context).pop();
-              },
-              child: Text('교환'),
-            ),
-          ],
-        ),
       );
     } else {
       showDialog(
         context: context,
         barrierColor: Colors.transparent, // 배경을 투명하게 설정
-        builder: (context) => AlertDialog(
-          backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
-          title: Text('교환 불가'),
-          content: Text('해당 상품의 교환권을 갖고 있지 않습니다.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('확인'),
+        builder: (context) =>
+            AlertDialog(
+              backgroundColor: Color(0xFFe7fbf9), // 모달의 배경색
+              title: Text('교환 불가'),
+              content: Text('해당 상품의 교환권을 갖고 있지 않습니다.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('확인'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
   }
@@ -224,161 +230,101 @@ class _ShoppingPageState extends State<ShoppingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-          title: Text(
-            "친환경 제품 구매하기",
-            style: TextStyle(color: Colors.black),
-          ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        backgroundColor: const Color(0xFFFFFEFD),
-        body: isLoading
-            ? Center(child: CircularProgressIndicator())
-            : Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ListView.builder(
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ShoppingContentPage(shoppingNo: product["shopping_no"], onPurchase: handlePurchase, // 함수 전달
-                            onCouponExchange: handleCouponExchange, // 함수 전달),
-                    ),
-                  ));
-                },
-                child: Container(
-                  margin: EdgeInsets.only(bottom: 16.0),
-                  padding: EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.0),
-                    border: Border.all(
-                      color: Color(0xFF95f5f3),
-                      width: 1.5,
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 100,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            child: product["shopping_img"] != null
-                                ? Image.asset(
-                              'assets/${product["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
-                              fit: BoxFit.cover,
-                            )
-                                : Icon(Icons.image_not_supported,
-                                size: 40, color: Colors.grey),
-                          ),
-                          SizedBox(width: 16.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product["shopping_title"] ?? "No Title",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 8.0),
-                                Text(
-                                  "${product["shopping_point"] ?? 0}포인트",
-                                  style: TextStyle(
-                                    color: Color(0xFF12D3CF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: 4.0),
-                                Text(
-                                  "모든 지역 구매 가능",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16.0),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                handlePurchase(product["shopping_point"]);
-                              },
-                              child: Text(
-                                "${product["shopping_point"] ?? 0} 포인트 구매",
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFFB0F4E6),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 12.0), // 버튼 높이 조정
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 8.0),
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () {
-                                handleCouponExchange(
-                                  product["coupon_no"],
-                                  product["shopping_title"] ?? "상품",
-                                );
-                              },
-                              child: Text(
-                                "상품권 교환",
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                side: BorderSide(
-                                    color: Color(0xFFB0F4E6), width: 1.5),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 12.0), // 버튼 높이 조정
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+        title: Text(
+          "친환경 제품 구매하기",
+          style: TextStyle(color: Colors.black),
+        ),
+      ),
+      backgroundColor: const Color(0xFFFFFEFD),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // 한 줄에 2개의 상품
+            crossAxisSpacing: 16.0, // 아이템 간의 가로 간격
+            mainAxisSpacing: 16.0, // 아이템 간의 세로 간격
+            childAspectRatio: 0.9, // 카드 비율 조정
           ),
-        ));
-  }
-}
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShoppingContentPage(
+                      shoppingNo: product["shopping_no"],
+                      onPurchase: handlePurchase,
+                      onCouponExchange: handleCouponExchange,
+                    ),
+                  ),
+                );
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min, // 아이템의 크기를 내용에 맞게 최소화
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // 상품 이미지 (정사각형, 가로 길이 줄임)
+                  Container(
+                    width: 138, // 가로 길이를 줄임
+                    height: 138, // 정사각형으로 유지
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12.0),
+                      image: product["shopping_img"] != null
+                          ? DecorationImage(
+                        image: AssetImage(
+                          'assets/${product["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
+                        ),
+                        fit: BoxFit.cover,
+                      )
+                          : null,
+                    ),
+                    child: product["shopping_img"] == null
+                        ? Icon(Icons.image_not_supported,
+                        size: 40, color: Colors.grey)
+                        : null,
+                  ),
+                  SizedBox(height: 8.0),
+                  // 상품 이름
+                  Text(
+                    product["shopping_title"] ?? "No Title",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4.0),
+                  // 포인트 정보
+                  Text(
+                    "${product["shopping_point"] ?? 0}포인트",
+                    style: TextStyle(
+                      color: Color(0xFF12D3CF),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }}

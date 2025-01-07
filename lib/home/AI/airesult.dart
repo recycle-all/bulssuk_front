@@ -8,6 +8,8 @@ import 'package:path/path.dart' as path; // 파일명 처리
 import 'dart:convert'; // JSON 변환을 위해 추가
 import 'package:uuid/uuid.dart';
 
+
+
 const String ftpHost = "222.112.27.120"; // FTP 서버 주소
 const String ftpUser = "suddenly"; // FTP 계정 사용자 이름
 const String ftpPassword = "suddenly"; // FTP 계정 비밀번호
@@ -66,13 +68,13 @@ class Airesult extends StatelessWidget {
 
   // 투표 업로드
   Future<bool> uploadVote(File imageFile, String voteResult) async {
-    const String serverUrl = 'http://192.168.0.240:8001/upload';
+    const String serverUrl = 'http://222.112.27.120:8001/upload';
 
 
     try {
       // FTP 업로드 함수 호출
       final uniqueFilename = await uploadFileToFTP(imageFile);
-      final String imgUrl = 'http://localhost:3000/img/$uniqueFilename';
+      final String imgUrl = 'http://222.112.27.120:81/img/$uniqueFilename';
       final response = await http.post(
         Uri.parse(serverUrl),
         headers: {'Content-Type': 'application/json'},

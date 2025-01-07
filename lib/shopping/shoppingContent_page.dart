@@ -30,7 +30,7 @@ class _ShoppingContentPageState extends State<ShoppingContentPage> {
   }
 
   Future<void> fetchProductDetails() async {
-    final url = Uri.parse('http://localhost:8001/shopping_product?shopping_no=${widget.shoppingNo}');
+    final url = Uri.parse('$URL/shopping_product?shopping_no=${widget.shoppingNo}');
     try {
       final response = await http.get(url, headers: {"Content-Type": "application/json"});
 

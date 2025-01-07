@@ -1,4 +1,5 @@
 import 'dart:async'; // Timer를 위해 추가
+import 'package:bulssuk/home/AI/voting.dart';
 import 'package:flutter/material.dart';
 import 'recyclingGuide/reupcycling_page.dart';
 import 'recyclingGuide/recyclingMenu_page.dart';
@@ -11,18 +12,10 @@ import 'package:url_launcher/url_launcher.dart'; // URL 열기를 위해 추가
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart'; // image_picker import
 import 'dart:io'; // File 사용
-
-// import 'package:ftpconnect/ftpconnect.dart';
 import '../home/ai/ai.dart';
-import '../home/ai/voting.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final URL = dotenv.env['URL'];
-
-// const String ftpHost = "222.112.27.120"; // FTP 서버 주소
-// const String ftpUser = "suddenly"; // FTP 계정 사용자 이름
-// const String ftpPassword = "suddenly"; // FTP 계정 비밀번호
-// const String ftpDirectory = "img/"; // 파일을 저장할 디렉터리
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -116,38 +109,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Future<void> uploadFileToFTP(File file) async {
-  //   final ftpConnect = FTPConnect(
-  //     ftpHost,
-  //     user: ftpUser,
-  //     pass: ftpPassword,
-  //     timeout: const Duration(seconds: 30).inMilliseconds, // 연결 타임아웃
-  //   );
-  //
-  //   try {
-  //     print("FTP 서버에 연결 시도...");
-  //     await ftpConnect.connect();
-  //
-  //     // 업로드할 디렉터리로 변경
-  //     await ftpConnect.changeDirectory(ftpDirectory);
-  //
-  //     // 파일 업로드
-  //     final bool result = await ftpConnect.uploadFile(file);
-  //
-  //     if (result) {
-  //       print("파일 업로드 성공!");
-  //     } else {
-  //       print("파일 업로드 실패!");
-  //     }
-  //   } catch (e) {
-  //     print("FTP 업로드 중 오류 발생: $e");
-  //   } finally {
-  //     await ftpConnect.disconnect();
-  //     print("FTP 연결 종료");
-  //   }
-  // }
-
-  // 카메라 열기 함수
   Future<void> _openCamera() async {
     print('카메라호출');
     try {
@@ -180,11 +141,11 @@ class _HomePageState extends State<HomePage> {
       print("카메라 사용 중 오류 발생: $e");
     }
   }
-  Future<List<Map<String, dynamic>>> fetchVoteList() async {
-    const String serverUrl = 'http://192.168.0.240:8001/votes'; // 서버 주소 업데이트
+  Future<List<Map<String, dynamic>>> fetchVoteList({required int userNo}) async {
+    final String serverUrl = 'http://222.112.27.120:8001/votes';
 
     try {
-      final response = await http.get(Uri.parse(serverUrl));
+      final response = await http.get(Uri.parse('$serverUrl?page=1&limit=10&user_no=$userNo'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -322,10 +283,46 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: const Text('오늘의 퀴즈'),
                       ),
-                      // 나무키우기 버튼
+                      // 투표게시판 버튼
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/voting'); // /voting으로 이동
+                        onPressed: () async {
+                          try {
+                            // Secure Storage에서 user_no 값 읽어오기
+                            final _storage = FlutterSecureStorage();
+                            String? userNoStr = await _storage.read(key: 'user_no');
+
+                            if (userNoStr == null) {
+                              // user_no가 없으면 에러 메시지 출력
+                              showTopNotification(context, '사용자 정보를 불러올 수 없습니다.');
+                              return;
+                            }
+
+                            int userNo = int.parse(userNoStr); // String을 int로 변환
+
+                            // Node.js 서버에서 투표 목록 가져오기
+                            final voteList = await fetchVoteList(userNo: userNo);
+
+                            if (voteList.isNotEmpty) {
+                              // 투표 목록을 가져왔으면 투표 게시판 페이지로 이동
+                              showTopNotification(context, '투표 게시판으로 이동합니다.');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => VoteBoardPage(
+                                    initialVoteList: voteList,
+                                    userNo: userNo,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              // 투표 목록이 비어 있을 때
+                              showTopNotification(context, '투표 목록이 없습니다.');
+                            }
+                          } catch (e) {
+                            // 에러 발생 시
+                            showTopNotification(context, '네트워크 오류 발생!');
+                            print('Error fetching vote list: $e');
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFCF9EC), // 버튼 배경색
@@ -335,8 +332,10 @@ class _HomePageState extends State<HomePage> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text('분리수거 투표'),
+                        child: const Text('투표 게시판'),
                       ),
+
+
                     ],
                   ),
                 ],

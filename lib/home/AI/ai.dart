@@ -44,7 +44,7 @@ class Ai extends StatelessWidget {
 
   void _analyzeImage(BuildContext context) async {
     // FastAPI 서버 URL
-    const String serverUrl = 'http://192.168.0.240:8765/analyze';
+    const String serverUrl = 'http://222.112.27.120:8765/analyze';
     debugPrint('서버 URL: $serverUrl');
 
     try {
