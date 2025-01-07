@@ -46,6 +46,16 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
     _memoController = TextEditingController(text: widget.memo['user_calendar_memo']);
     _alarmEnabled = widget.memo['user_calendar_list'] ?? false;
 
+    // 기존 시간 초기화
+    if (widget.memo['user_calendar_time'] != null) {
+      final timeParts = widget.memo['user_calendar_time'].split(':');
+      if (timeParts.length == 2) {
+        _selectedTime = TimeOfDay(
+          hour: int.parse(timeParts[0]),
+          minute: int.parse(timeParts[1]),
+        );
+      }
+    }
 
     _loadUserId();
   }
@@ -89,6 +99,11 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
     // 날짜를 ISO8601에서 YYYY-MM-DD 형식으로 변환
     String formattedDate = widget.selectedDate.toIso8601String().split('T')[0];
 
+    // 시간을 HH:MM 형식으로 변환
+    String? formattedTime = _selectedTime != null
+        ? '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}'
+        : null;
+
     final alarmData = {
       'user_id': userId,
       'user_calendar_no': widget.memo['user_calendar_no'], // 고유 식별자
@@ -96,6 +111,7 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
       'user_calendar_every': _alarmFrequency,
       'user_calendar_memo': _memoController.text,
       'user_calendar_date': formattedDate, // 날짜 전달
+      'user_calendar_time': formattedTime,
       'user_calendar_list': _alarmEnabled, // 토글 상태 전달
     };
 
