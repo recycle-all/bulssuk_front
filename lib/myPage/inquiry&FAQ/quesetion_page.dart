@@ -349,7 +349,7 @@ class QuestionHistory extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
                           children: [
                             const Align(
-                              alignment: Alignment.centerLeft, // 완전한 왼쪽 정렬을 위해 추가
+                              alignment: Alignment.centerLeft, // 왼쪽 정렬을 위해 추가
                               child: Text(
                                 '문의 내용:',
                                 style: TextStyle(
