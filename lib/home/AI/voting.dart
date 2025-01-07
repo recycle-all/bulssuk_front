@@ -22,7 +22,15 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
   @override
   void initState() {
     super.initState();
-    voteList = widget.initialVoteList; // 초기 데이터를 설정
+    // 만료된 투표 필터링과 초기 데이터를 설정
+    voteList = widget.initialVoteList.where((vote) => !_isVoteExpired(vote['created_at'])).toList();
+    // voteList = widget.initialVoteList; // 초기 데이터를 설정
+  }
+  // 만료된 투표인지 확인하는 함수 (7일이 지난 투표는 만료)
+  bool _isVoteExpired(String createdAt) {
+    final DateTime createdDate = DateTime.parse(createdAt);
+    final DateTime expiryDate = createdDate.add(const Duration(days: 7));
+    return DateTime.now().isAfter(expiryDate);
   }
 
   Future<void> fetchNextPage() async {
@@ -33,7 +41,10 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
 
     try {
       final List<Map<String, dynamic>> newVotes = await fetchVoteList(page: currentPage + 1);
-      if (newVotes.isEmpty) {
+      // 새로 가져온 데이터에서 만료된 투표 필터링
+      final filteredVotes = newVotes.where((vote) => !_isVoteExpired(vote['created_at'])).toList();
+
+      if (filteredVotes.isEmpty) {
         setState(() {
           hasMore = false; // 더 이상 데이터가 없음을 설정
         });
@@ -53,7 +64,7 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
   }
 
   Future<void> updateVote(int userNo, int voteNo, String option) async {
-    const String serverUrl = 'http://192.168.0.240:8001/updatevote';
+    const String serverUrl = 'http://222.112.27.120:8001/updatevote';
 
     try {
       final response = await http.put(
@@ -164,8 +175,21 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
               itemCount: voteList.length,
               itemBuilder: (context, index) {
                 final vote = voteList[index];
-                return Card(
+                final bool expired = _isVoteExpired(vote['created_at']); // 만료 여부 확인
+                final bool alreadyVoted = vote['user_voted'] ?? false;
+
+                if (expired) return Container(); // 만료된 투표는 표시하지 않음
+
+                return Container(
                   margin: const EdgeInsets.all(10.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white, // 박스 배경색 하얀색
+                    border: Border.all( // 테두리 설정
+                      color: Colors.grey[200]!,
+                      width: 2.0, // 테두리 두께
+                    ),
+                    borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -175,7 +199,7 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '이 쓰레기는 무엇 일까요?',
+                              '이 쓰레기는 무엇일까요?',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -184,12 +208,11 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 20),
                         Image.network(
-                          // 이미지 URL 생성
-                          'http://192.168.0.240:8001/images/${vote['img_url']?.split('/').last ?? 'default.jpg'}',
-                          fit: BoxFit.cover,
-                          height: 350,
+                          'http://222.112.27.120:81/img/${vote['img_url']?.split('/').last ?? 'default.jpg'}',
+                          fit: BoxFit.contain,
+                          height: 200,
                           width: double.infinity,
                           errorBuilder: (context, error, stackTrace) {
                             print('Image loading error: $error');
@@ -197,39 +220,45 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
                             return const Center(child: Text('이미지를 불러오지 못했습니다.'));
                           },
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 30),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildVoteButton('plastic', vote['vote_no']),
-                            _buildVoteButton('glass', vote['vote_no']),
-                            _buildVoteButton('metal', vote['vote_no'])
+                            _buildVoteButton('plastic', vote['vote_no'], alreadyVoted),
+                            _buildVoteButton('glass', vote['vote_no'], alreadyVoted),
+                            _buildVoteButton('metal', vote['vote_no'], alreadyVoted),
                           ],
                         ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 );
+
               },
             ),
           ),
+          const SizedBox(height: 10), // 간격 추가
           if (isLoading) const Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
           if (hasMore)
-            ElevatedButton(
-              onPressed: fetchNextPage,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: IconButton(
+                onPressed: fetchNextPage,
+                icon: const Icon(Icons.refresh),
+                color: Colors.grey,
+                iconSize: 36.0, // 아이콘 크기 조정 가능
+                tooltip: '더 보기',
               ),
-              child: const Text('더 보기'),
             ),
+          const SizedBox(height: 10), // 간격 추가
           if (!hasMore) const Text('모든 데이터를 로드했습니다.'),
         ],
       ),
     );
   }
 
-  Widget _buildVoteButton(String label, int voteNo) {
+  Widget _buildVoteButton(String label, int voteNo, bool alreadyVoted) {
     final bool alreadyVoted = voteList.any((vote) => vote['vote_no'] == voteNo && vote['user_voted'] == true);
 
     return ElevatedButton(
@@ -237,46 +266,13 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
           ? null // 이미 투표한 경우 버튼 비활성화
       : () async {
         await updateVote(widget.userNo, voteNo, label); // userNo 전달
-
-        // 투표 완료 메시지 표시
-        // showDialog(
-        //   context: context,
-        //   barrierDismissible: false, // 사용자가 외부를 눌러도 닫히지 않도록 설정
-        //   builder: (BuildContext context) {
-        //     Future.delayed(const Duration(seconds: 2), () {
-        //       Navigator.of(context).pop(); // 2초 후 모달 닫기
-        //     });
-        //
-        //     return AlertDialog(
-        //       shape: RoundedRectangleBorder(
-        //         borderRadius: BorderRadius.circular(10),
-        //       ),
-        //       content: Column(
-        //         mainAxisSize: MainAxisSize.min,
-        //         children: [
-        //           const Icon(
-        //             Icons.check_circle,
-        //             color: Colors.green,
-        //             size: 50,
-        //           ),
-        //           const SizedBox(height: 10),
-        //           Text(
-        //             '\'$label\'에 투표하셨습니다.',
-        //             style: const TextStyle(fontSize: 16),
-        //             textAlign: TextAlign.center,
-        //           ),
-        //         ],
-        //       ),
-        //     );
-        //   },
-        // );
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: alreadyVoted ? Colors.grey : Colors.white,
         foregroundColor: alreadyVoted ? Colors.black45 : Colors.black,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: Colors.green),
+          borderRadius: BorderRadius.circular(12.0),
+          side: const BorderSide(color: Color(0xFFB0F4E6)),
         ),
       ),
       child: Text(label),
@@ -284,10 +280,13 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
   }
 
   Future<List<Map<String, dynamic>>> fetchVoteList({required int page}) async {
-    const String serverUrl = 'http://192.168.0.240:8001/votes';
+    const String serverUrl = 'http://222.112.27.120:8001/votes';
 
     try {
-      final response = await http.get(Uri.parse('$serverUrl?page=$page&limit=10'));
+      // final response = await http.get(Uri.parse('$serverUrl?page=$page&limit=10'));
+      // user_no를 쿼리 파라미터로 추가
+      final response = await http.get(Uri.parse('$serverUrl?page=$page&limit=10&user_no=${widget.userNo}'));
+
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
