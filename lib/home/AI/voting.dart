@@ -252,7 +252,8 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
               ),
             ),
           const SizedBox(height: 10), // 간격 추가
-          if (!hasMore) const Text('모든 데이터를 로드했습니다.'),
+          if (!hasMore) const Text('모든 데이터를 로드했습니다.\n'),
+          const SizedBox(height: 10), // 간격 추가
         ],
       ),
     );
