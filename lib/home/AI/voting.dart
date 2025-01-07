@@ -168,96 +168,117 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: voteList.length,
-              itemBuilder: (context, index) {
-                final vote = voteList[index];
-                final bool expired = _isVoteExpired(vote['created_at']); // 만료 여부 확인
-                final bool alreadyVoted = vote['user_voted'] ?? false;
-
-                if (expired) return Container(); // 만료된 투표는 표시하지 않음
-
-                return Container(
-                  margin: const EdgeInsets.all(10.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white, // 박스 배경색 하얀색
-                    border: Border.all( // 테두리 설정
-                      color: Colors.grey[200]!,
-                      width: 2.0, // 테두리 두께
-                    ),
-                    borderRadius: BorderRadius.circular(12.0), // 둥근 모서리
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '이 쓰레기는 무엇일까요?',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Image.network(
-                          'http://222.112.27.120:81/img/${vote['img_url']?.split('/').last ?? 'default.jpg'}',
-                          fit: BoxFit.contain,
-                          height: 200,
-                          width: double.infinity,
-                          errorBuilder: (context, error, stackTrace) {
-                            print('Image loading error: $error');
-                            print('Image URL: ${vote['img_url']}');
-                            return const Center(child: Text('이미지를 불러오지 못했습니다.'));
-                          },
-                        ),
-                        const SizedBox(height: 30),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildVoteButton('plastic', vote['vote_no'], alreadyVoted),
-                            _buildVoteButton('glass', vote['vote_no'], alreadyVoted),
-                            _buildVoteButton('metal', vote['vote_no'], alreadyVoted),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                );
-
-              },
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0), // 전체 Column에 왼쪽 및 오른쪽 여백 추가
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'AI의 분석 결과에 투표하고 포인트 받으세요!',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+              textAlign: TextAlign.start,
             ),
-          ),
-          const SizedBox(height: 10), // 간격 추가
-          if (isLoading) const Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()),
-          if (hasMore)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: IconButton(
-                onPressed: fetchNextPage,
-                icon: const Icon(Icons.refresh),
-                color: Colors.grey,
-                iconSize: 36.0, // 아이콘 크기 조정 가능
-                tooltip: '더 보기',
+            SizedBox(height: 6),
+            Text(
+              '투표하기 📥',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.start,
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView.builder(
+                itemCount: voteList.length,
+                itemBuilder: (context, index) {
+                  final vote = voteList[index];
+                  final bool expired = _isVoteExpired(vote['created_at']); // 만료 여부 확인
+                  final bool alreadyVoted = vote['user_voted'] ?? false;
+
+                  if (expired) return SizedBox.shrink(); // 만료된 투표는 표시하지 않음
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12.0), // 카드 간의 간격
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        color: Colors.grey[200]!,
+                        width: 2.0,
+                      ),
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '이 쓰레기는 무엇일까요?',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Image.network(
+                            'http://222.112.27.120:81/img/${vote['img_url']?.split('/').last ?? 'default.jpg'}',
+                            fit: BoxFit.contain,
+                            height: 200,
+                            width: double.infinity,
+                            errorBuilder: (context, error, stackTrace) {
+                              print('Image loading error: $error');
+                              print('Image URL: ${vote['img_url']}');
+                              return const Center(child: Text('이미지를 불러오지 못했습니다.'));
+                            },
+                          ),
+                          const SizedBox(height: 30),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildVoteButton('plastic', vote['vote_no'], alreadyVoted),
+                              _buildVoteButton('glass', vote['vote_no'], alreadyVoted),
+                              _buildVoteButton('metal', vote['vote_no'], alreadyVoted),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-          const SizedBox(height: 10), // 간격 추가
-          if (!hasMore) const Text('모든 데이터를 로드했습니다.\n'),
-          const SizedBox(height: 10), // 간격 추가
-        ],
+            if (isLoading) ...[
+              const SizedBox(height: 10),
+              const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ],
+            if (hasMore)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Center( // 중앙 정렬
+                  child: IconButton(
+                    onPressed: fetchNextPage,
+                    icon: const Icon(Icons.refresh),
+                    color: Colors.grey,
+                    iconSize: 36.0,
+                    tooltip: '더 보기',
+                  ),
+                ),
+              ),
+            if (!hasMore)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+                child: Center(
+                  child: Text('모든 데이터를 로드했습니다.'),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildVoteButton(String label, int voteNo, bool alreadyVoted) {
     final bool alreadyVoted = voteList.any((vote) => vote['vote_no'] == voteNo && vote['user_voted'] == true);
