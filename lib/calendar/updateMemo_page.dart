@@ -353,7 +353,7 @@ class _UpdateMemoPageState extends State<UpdateMemoPage> {
           borderRadius: BorderRadius.circular(12.0),
         ),
         padding: const EdgeInsets.symmetric(vertical: 14.0), // 버튼 내부 패딩 (높이 조정)
-        fixedSize: const Size(200, 50), // 버튼 크기 고정
+        fixedSize: const Size(150, 50), // 버튼 크기 고정
       ),
       onPressed: onPressed,
       child: Text(label, style: const TextStyle(color: Colors.black)),
