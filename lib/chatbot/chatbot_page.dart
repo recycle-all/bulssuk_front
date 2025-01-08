@@ -69,7 +69,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
     if (userNo == null) return;
 
     try {
-      final url = Uri.parse('http://192.168.0.112:7777/chat_logs?user_no=$userNo');
+      final url = Uri.parse('http://192.168.0.112:7776/chat_logs?user_no=$userNo');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -92,7 +92,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
     if (channel != null || userNo == null) return;
 
     channel = WebSocketChannel.connect(
-      Uri.parse('ws://192.168.0.112:7777/ws/chatbot?user_no=$userNo'),
+      Uri.parse('ws://192.168.0.112:7776/ws/chatbot?user_no=$userNo'),
     );
 
     channel!.stream.listen(
