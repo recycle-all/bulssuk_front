@@ -119,8 +119,8 @@ class _PointPageState extends State<PointPage> {
               ),
               padding: const EdgeInsets.all(16.0), // 내부 여백
               child: const Text(
-                '- 포인트는 나무키우기와 리사이클링 제품 구매에 사용할 수 있습니다.\n'
-                    '- 포인트는 출석체크, 친환경 문제, 분리수거 투표를 통해 얻을 수 있습니다.',
+                '• 포인트는 나무키우기와 리사이클링 제품 구매에 사용할 수 있습니다.\n'
+                    '• 포인트는 출석체크, 친환경 문제, 분리수거 투표를 통해 얻을 수 있습니다.',
                 style: TextStyle(fontSize: 12, color: Colors.black87),
                 textAlign: TextAlign.left, // 텍스트 좌측 정렬
               ),
