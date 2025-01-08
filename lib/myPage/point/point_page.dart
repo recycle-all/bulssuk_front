@@ -63,6 +63,7 @@ class _PointPageState extends State<PointPage> {
     }
   }
 
+  /// ✅ 포인트 내역 불러오는 메서드
   Future<void> _fetchPointHistory() async {
     try {
       if (_url == null) throw Exception('API URL이 설정되지 않았습니다.');
