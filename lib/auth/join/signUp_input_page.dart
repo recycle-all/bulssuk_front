@@ -477,90 +477,103 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
             ],
             SizedBox(height: 20),
             // 아이디 입력
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 왼쪽 정렬
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _idController, // 아이디 입력 컨트롤러
-                    decoration: InputDecoration(
-                      labelText: '아이디 입력',
-                      labelStyle: TextStyle(
-                        color: Colors.black, // 라벨 텍스트 색상 검은색
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10), // 둥근 테두리
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Color(0xFFCCCCCC), // 비활성화 상태 테두리 색상
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                          color: Color(0xFF67EACA), // 활성화 상태 테두리 색상
-                          width: 2, // 테두리 두께
+                // 아이디 입력 필드와 중복 확인 버튼을 나란히 배치
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _idController, // 아이디 입력 컨트롤러
+                        decoration: InputDecoration(
+                          labelText: '아이디 입력',
+                          labelStyle: TextStyle(color: Colors.black), // 라벨 텍스트 색상 검은색
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10), // 둥근 테두리
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Color(0xFFCCCCCC)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Color(0xFF67EACA), width: 2),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(width: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    final userId = _idController.text; // 아이디 값
-                    if (userId.isEmpty) {
-                      setState(() {
-                        _idCheckMessage = '아이디를 입력하세요.'; // 에러 메시지
-                      });
-                      return;
-                    }
-                    print('아이디 중복 확인 요청: $userId');
-                    final url = Uri.parse('$URL/id_check'); // Node.js 서버 URL
-                    try {
-                      final response = await http.post(
-                        url,
-                        headers: {'Content-Type': 'application/json'},
-                        body: json.encode({'id': userId}),
-                      );
+                    SizedBox(width: 20),
 
-                      if (response.statusCode == 200) {
-                        final responseData = json.decode(response.body);
-                        print('서버 응답: ${responseData['message']}');
-                        setState(() {
-                          _isIdChecked = true; // 아이디 중복 확인 완료
-                          _idCheckMessage = responseData['message']; // 성공 메시지 표시
-                          _serverMessage = '사용 가능한 아이디 입니다.';
-                        });
-                      } else {
-                        final responseData = json.decode(response.body);
-                        print('에러 발생: ${responseData['message']}');
-                        setState(() {
-                          _isIdChecked = false; // 아이디 중복 확인 실패
-                          _idCheckMessage = responseData['message']; // 실패 메시지 표시
-                          _serverMessage = '이미 사용 중인 아이디 입니다.';
-                        });
-                      }
-                    } catch (error) {
-                      print('통신 실패: $error');
-                      setState(() {
-                        _idCheckMessage = '서버와 통신할 수 없습니다.';
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(100, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8), // 둥근 테두리
+                    // 중복 확인 버튼
+                    ElevatedButton(
+                      onPressed: () async {
+                        final userId = _idController.text.trim(); // 공백 제거
+                        if (userId.isEmpty) {
+                          setState(() {
+                            _idCheckMessage = '아이디를 입력하세요.'; // 에러 메시지
+                          });
+                          return;
+                        }
+
+                        final url = Uri.parse('$URL/id_check'); // Node.js 서버 URL
+                        try {
+                          final response = await http.post(
+                            url,
+                            headers: {'Content-Type': 'application/json'},
+                            body: json.encode({'id': userId}),
+                          );
+
+                          if (response.statusCode == 200) {
+                            final responseData = json.decode(response.body);
+                            setState(() {
+                              _isIdChecked = true; // 아이디 중복 확인 완료
+                              _idCheckMessage = responseData['message']; // 성공 메시지
+                              _serverMessage = '사용 가능한 아이디입니다.';
+                            });
+                          } else {
+                            final responseData = json.decode(response.body);
+                            setState(() {
+                              _isIdChecked = false; // 아이디 중복 확인 실패
+                              _idCheckMessage = responseData['message']; // 실패 메시지
+                              _serverMessage = '이미 사용 중인 아이디입니다.';
+                            });
+                          }
+                        } catch (error) {
+                          setState(() {
+                            _idCheckMessage = '서버와 통신할 수 없습니다.';
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(100, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8), // 둥근 테두리
+                        ),
+                        backgroundColor: Color(0xFFB0F4E6), // 버튼 배경색
+                      ),
+                      child: Text(
+                        '중복 확인',
+                        style: TextStyle(color: Colors.black), // 버튼 텍스트 색상
+                      ),
                     ),
-                    backgroundColor: Color(0xFFB0F4E6), // 버튼 배경색
-                  ),
-                  child: Text(
-                    '중복 확인',
-                    style: TextStyle(color: Colors.black), // 버튼 텍스트 색상 검은색
-                  ),
+                  ],
                 ),
+
+                // 아이디 중복 확인 메시지를 텍스트박스 아래에 표시
+                if (_idCheckMessage != null) ...[
+                  SizedBox(height: 10),
+                  Padding(
+                    padding: EdgeInsets.only(left: 8.0), // 왼쪽 여백 추가
+                    child: Text(
+                      _idCheckMessage!,
+                      style: TextStyle(
+                        color: _isIdChecked ? Colors.green : Colors.red, // 성공시 초록, 실패시 빨강
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ]
               ],
             ),
             SizedBox(height: 20),
@@ -733,7 +746,6 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('회원가입을 완료했습니다. 로그인 후 이용해주세요.'),
-                        backgroundColor: Colors.green,
                       ),
                     );
                     Navigator.pushNamed(context, '/login'); // 로그인 페이지로 이동
