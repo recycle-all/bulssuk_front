@@ -96,6 +96,7 @@ class _TreePageState extends State<TreePage> {
       setState(() {
         points = data['totalPoints'];
       });
+      print("포인트 업데이트 완료: $points"); // 디버깅 로그 추가
     } else {
       print("포인트 조회 실패: ${response.body}");
     }
@@ -136,16 +137,17 @@ class _TreePageState extends State<TreePage> {
             print("가져온 쿠폰 데이터: $coupons");
           });
         } else {
-          print("쿠폰 조회 실패: ${data['message']}");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'] ?? "쿠폰 조회에 실패했습니다.")),
+          availableCoupons = 0; // 쿠폰이 없으면 0으로 설정
+          hasReceivedCoupon = false;
+          print("쿠폰 조회 실패: ${data['message']}"
           );
         }
       } else {
         print("HTTP 요청 실패: ${response.body}");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("쿠폰 데이터를 가져오는 중 오류가 발생했습니다.")),
-        );
+        setState(() {
+          availableCoupons = 0; // 쿠폰이 없으면 0으로 설정
+          hasReceivedCoupon = false;
+        });
       }
     } catch (e) {
       print("쿠폰 데이터를 가져오는 중 예외 발생: $e");
@@ -592,17 +594,23 @@ class _TreePageState extends State<TreePage> {
 
     try {
       // JWT 토큰 읽기
+      print("Performing action: $actionType"); // 디버깅 로그 추가
       String? token = await storage.read(key: "jwt_token");
       if (token == null) {
         print("Error: jwt_token이 없습니다.");
         return;
       }
 
-      final endpoint = actionType == "물주기"
-          ? "/tree/water"
-          : actionType == "햇빛쐬기"
-          ? "/tree/sunlight"
-          : "/tree/fertilizer";
+      String endpoint;
+      if (actionType == "물주기") {
+        endpoint = "/tree/water";
+      } else if (actionType == "햇빛 쐬기") {
+        endpoint = "/tree/sunlight";
+      } else if (actionType == "비료 주기") {
+        endpoint = "/tree/fertilizer";
+      } else {
+        throw Exception("Unknown action type: $actionType");
+      }
 
       final uri = Uri.parse('$URL$endpoint');
       final headers = {
@@ -617,8 +625,12 @@ class _TreePageState extends State<TreePage> {
       );
 
       if (response.statusCode == 200) {
-        await fetchTreeState(); // 상태 새로고침
+
         print("$actionType 성공");
+        // 작업 성공 후 포인트와 나무 상태를 즉시 새로고침
+        await fetchUserPoints(); // 상단 포인트 갱신
+        await fetchTreeState(); // 나무 상태 갱신
+
       } else {
         print("$actionType 실패: ${response.body}");
       }
