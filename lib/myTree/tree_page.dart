@@ -42,6 +42,9 @@ class _TreePageState extends State<TreePage> {
   String treeImage = ""; // 나무 이미지 URL
   String treeContent = "잠시만 기다려주세요."; // 나무 상태 멘트
   String? userNo; // 사용자 번호
+  String? selectedCoupon; // 사용자가 선택한 쿠폰
+  bool hasReceivedCoupon = false; // 쿠폰을 받았는지 여부
+
   int points = 0;
   int availableCoupons = 0;
   final FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -55,59 +58,7 @@ class _TreePageState extends State<TreePage> {
     fetchTreeManageActions();
   }
 
-  List<dynamic> treeActions = []; // tree_manage 데이터를 저장할 리스트
-
-  Future<void> fetchTreeManageActions() async {
-    final uri = Uri.parse('$URL/tree/manage'); // 백엔드 API URL
-    final response = await http.get(uri);
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        treeActions = data['data']; // tree_manage 데이터를 저장
-      });
-    } else {
-      print("Failed to fetch tree_manage actions: ${response.body}");
-    }
-  }
-
-
-  Future<void> fetchUserPoints() async {
-    final token = await storage.read(key: "jwt_token");
-    final response = await http.get(
-      Uri.parse('$URL/total_point'),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        points = data['totalPoints'];
-      });
-    } else {
-      print("포인트 조회 실패: ${response.body}");
-    }
-  }
-
-  Future<void> fetchCoupons() async {
-    final token = await storage.read(key: "jwt_token");
-    final response = await http.get(
-      Uri.parse('$URL/user_coupon'),
-      headers: {
-        "Authorization": "Bearer $token",
-      },
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() {
-        availableCoupons = data['coupons'].length;
-      });
-    } else {
-      print("쿠폰 조회 실패: ${response.body}");
-    }
-  }
-
+  // 유저 데이터
   Future<void> loadUserData() async {
     try {
       userNo = await _storage.read(key: 'user_no');
@@ -131,7 +82,229 @@ class _TreePageState extends State<TreePage> {
     }
   }
 
+  // 상단 포인트 조회
+  Future<void> fetchUserPoints() async {
+    final token = await storage.read(key: "jwt_token");
+    final response = await http.get(
+      Uri.parse('$URL/total_point'),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        points = data['totalPoints'];
+      });
+    } else {
+      print("포인트 조회 실패: ${response.body}");
+    }
+  }
 
+  // 상단 쿠폰 조회
+  Future<void> fetchCoupons() async {
+    final token = await storage.read(key: "jwt_token");
+    if (token == null) {
+      print("JWT 토큰이 없습니다.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("로그인이 필요합니다.")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$URL/user_coupon'),
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['success'] == true) {
+          setState(() {
+            availableCoupons = data['availableCouponCount'];
+            final coupons = data['data'] as List;
+
+            // 이미 쿠폰을 받은 경우 확인
+            if (availableCoupons > 0) {
+              hasReceivedCoupon = true;
+            }
+
+            print("가져온 쿠폰 데이터: $coupons");
+          });
+        } else {
+          print("쿠폰 조회 실패: ${data['message']}");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? "쿠폰 조회에 실패했습니다.")),
+          );
+        }
+      } else {
+        print("HTTP 요청 실패: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("쿠폰 데이터를 가져오는 중 오류가 발생했습니다.")),
+        );
+      }
+    } catch (e) {
+      print("쿠폰 데이터를 가져오는 중 예외 발생: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("쿠폰 데이터를 가져오는 중 문제가 발생했습니다.")),
+      );
+    }
+  }
+
+  // 쿠폰 데이터 가져오기
+  Future<List<dynamic>> fetchAvailableCoupons() async {
+    try {
+      final token = await storage.read(key: "jwt_token");
+      final response = await http.get(
+        Uri.parse('$URL/tree/coupon'),
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['coupons'] ?? [];
+      } else {
+        print("쿠폰 데이터 조회 실패: ${response.body}");
+        return [];
+      }
+    } catch (e) {
+      print("Error fetching coupons: $e");
+      return [];
+    }
+  }
+
+  // 쿠폰 선택 모달 함수
+  void showCouponSelectionDialog() async {
+    final coupons = await fetchAvailableCoupons();
+
+    if (coupons.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("사용 가능한 쿠폰이 없습니다."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("확인"),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    selectedCoupon = null;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text(
+                "쿠폰 선택",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: coupons.map<Widget>((coupon) {
+                    return RadioListTile<String>(
+                      title: Text(coupon['coupon_name']),
+                      subtitle: Text(coupon['coupon_type']),
+                      value: coupon['coupon_no'].toString(),
+                      groupValue: selectedCoupon,
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCoupon = value; // 선택된 쿠폰 업데이트
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("취소"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    if (selectedCoupon != null) {
+                      Navigator.pop(context);
+                      print("선택된 쿠폰 번호: $selectedCoupon");
+
+                      // 쿠폰 저장 호출
+                      if (userNo != null) {
+                        await saveSelectedCoupon(userNo!, selectedCoupon!);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("사용자 정보를 확인할 수 없습니다.")),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("쿠폰을 선택해주세요.")),
+                      );
+                    }
+                  },
+                  child: const Text("확인"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // 선택한 쿠폰을 사용자 쿠폰함에 저장
+  Future<void> saveSelectedCoupon(String userNo, String couponNo) async {
+    try {
+      final token = await storage.read(key: "jwt_token");
+      final response = await http.post(
+        Uri.parse('$URL/tree/select_coupon'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "user_no": userNo,
+          "coupon_no": couponNo,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print("쿠폰이 성공적으로 저장되었습니다.");
+        setState(() {
+          hasReceivedCoupon = true; // 쿠폰 저장 성공 시 업데이트
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("쿠폰이 성공적으로 저장되었습니다.")),
+        );
+      } else {
+        print("쿠폰 저장 실패: ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("쿠폰 저장에 실패했습니다.")),
+        );
+      }
+    } catch (e) {
+      print("Error saving selected coupon: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("쿠폰 저장 중 오류가 발생했습니다.")),
+      );
+    }
+  }
+
+  // 나무 상태 데이터베이스에서 가져오기
   Future<void> fetchTreeState() async {
     try {
       String? storedUserNo = await storage.read(key: "user_no");
@@ -169,6 +342,7 @@ class _TreePageState extends State<TreePage> {
     }
   }
 
+  // 레벨업 로직
   void checkLevelUp() {
     double percent = calculateLevelPercent(treePoints, treeStatus);
 
@@ -183,11 +357,13 @@ class _TreePageState extends State<TreePage> {
       } else if (treeStatus == "가지") {
         showLevelUpDialog("나무");
       } else if (treeStatus == "나무") {
-        showLevelUpDialog("꽃");
+        setState(() {
+          treeStatus = "꽃"; // "꽃"으로 상태 변경
+        });
+        showCouponSelectionDialog(); // "꽃" 레벨에서 쿠폰 모달 띄움
       }
     }
   }
-
 
   // 레벨업 모달 함수
   void showLevelUpDialog(String nextLevel) {
@@ -389,6 +565,83 @@ class _TreePageState extends State<TreePage> {
     );
   }
 
+// 물주기, 햇빛쐬기, 비료주기 기능 함수
+  Future<void> performAction(String actionType) async {
+    if (userNo == null || userNo!.isEmpty) {
+      print("Error: user_no가 null이거나 비어 있습니다.");
+      return;
+    }
+
+    // 선택한 작업에 필요한 포인트 계산
+    final selectedAction = treeActions.firstWhere(
+          (action) => action['tree_manage'] == actionType,
+      orElse: () => null,
+    );
+
+    if (selectedAction == null) {
+      print("Error: 선택한 작업을 찾을 수 없습니다.");
+      return;
+    }
+
+    final requiredPoints = int.parse(selectedAction['manage_points'].toString());
+    if (points < requiredPoints) {
+      // 포인트 부족 모달 호출
+      showInsufficientPointsDialog();
+      return;
+    }
+
+    try {
+      // JWT 토큰 읽기
+      String? token = await storage.read(key: "jwt_token");
+      if (token == null) {
+        print("Error: jwt_token이 없습니다.");
+        return;
+      }
+
+      final endpoint = actionType == "물주기"
+          ? "/tree/water"
+          : actionType == "햇빛쐬기"
+          ? "/tree/sunlight"
+          : "/tree/fertilizer";
+
+      final uri = Uri.parse('$URL$endpoint');
+      final headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token", // 토큰 추가
+      };
+
+      final response = await http.post(
+        uri,
+        headers: headers,
+        body: jsonEncode({"user_no": int.parse(userNo!)}),
+      );
+
+      if (response.statusCode == 200) {
+        await fetchTreeState(); // 상태 새로고침
+        print("$actionType 성공");
+      } else {
+        print("$actionType 실패: ${response.body}");
+      }
+    } catch (e) {
+      print("Error performing $actionType: $e");
+    }
+  }
+
+  // 물주기, 햇빛쐬기, 비료주기 이미지 가져오기
+  List<dynamic> treeActions = []; // tree_manage 데이터를 저장할 리스트
+  Future<void> fetchTreeManageActions() async {
+    final uri = Uri.parse('$URL/tree/manage'); // 백엔드 API URL
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        treeActions = data['data']; // tree_manage 데이터를 저장
+      });
+    } else {
+      print("Failed to fetch tree_manage actions: ${response.body}");
+    }
+  }
 
   // 포인트 부족 모달 함수
   void showInsufficientPointsDialog() {
@@ -451,77 +704,6 @@ class _TreePageState extends State<TreePage> {
       },
     );
   }
-
-
-  Future<void> performAction(String actionType) async {
-    if (userNo == null || userNo!.isEmpty) {
-      print("Error: user_no가 null이거나 비어 있습니다.");
-      return;
-    }
-
-    // 선택한 작업에 필요한 포인트 계산
-    final selectedAction = treeActions.firstWhere(
-          (action) => action['tree_manage'] == actionType,
-      orElse: () => null,
-    );
-
-    if (selectedAction == null) {
-      print("Error: 선택한 작업을 찾을 수 없습니다.");
-      return;
-    }
-
-    final requiredPoints = int.parse(selectedAction['manage_points'].toString());
-    if (points < requiredPoints) {
-      // 포인트 부족 모달 호출
-      showInsufficientPointsDialog();
-      return;
-    }
-
-    try {
-      // JWT 토큰 읽기
-      String? token = await storage.read(key: "jwt_token");
-      if (token == null) {
-        print("Error: jwt_token이 없습니다.");
-        return;
-      }
-
-      final endpoint = actionType == "물주기"
-          ? "/tree/water"
-          : actionType == "햇빛쐬기"
-          ? "/tree/sunlight"
-          : "/tree/fertilizer";
-
-      final uri = Uri.parse('$URL$endpoint');
-      final headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token", // 토큰 추가
-      };
-
-      // Request 디버깅
-      print("Request URL: $uri");
-      print("Request Headers: $headers");
-      print("Request Body: ${jsonEncode({"user_no": int.parse(userNo!)})}");
-
-      final response = await http.post(
-        uri,
-        headers: headers,
-        body: jsonEncode({"user_no": int.parse(userNo!)}),
-      );
-
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        await fetchTreeState(); // 상태 새로고침
-        print("$actionType 성공");
-      } else {
-        print("$actionType 실패: ${response.body}");
-      }
-    } catch (e) {
-      print("Error performing $actionType: $e");
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -650,6 +832,25 @@ class _TreePageState extends State<TreePage> {
                 );
               }).toList(),
             ),
+            const SizedBox(height: 20,),
+            // "쿠폰 받기" 버튼
+            if (treeStatus == "꽃" && !hasReceivedCoupon)
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+                  backgroundColor: const Color(0xFF67EACA),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  showCouponSelectionDialog();
+                },
+                child: const Text(
+                  "쿠폰 받기",
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                ),
+              ),
           ],
         ),
       ),
