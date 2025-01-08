@@ -60,9 +60,7 @@ class _SavedMemoPageState extends State<SavedMemoPage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> fetchedMemos = jsonDecode(response.body);
-
-        // user_calendar_list == true 데이터만 필터링
-        final filteredMemos = fetchedMemos.where((memo) => memo['user_calendar_list'] == true).toList();
+        final filteredMemos = fetchedMemos; // 필터링 조건 없이 모든 데이터 사용
 
         setState(() {
           memoList = filteredMemos; // 필터링된 데이터만 업데이트

@@ -1,3 +1,4 @@
+import 'package:bulssuk/chatbot/chatbot_page.dart';
 import 'package:bulssuk/home/AI/voting.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart'; // dotenv 패키지

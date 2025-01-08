@@ -19,6 +19,13 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
   bool isLoading = false; // 로딩 상태
   bool hasMore = true; // 추가 데이터 존재 여부
 
+  // 한글-영어 매핑 테이블
+  final Map<String, String> _optionMapping = {
+    '플라스틱': 'plastic',
+    '유리': 'glass',
+    '메탈': 'metal',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -156,6 +163,27 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
       },
     );
   }
+  // 만료까지 남은 일수 계산하는 함수
+  int _daysUntilExpiry(String createdAt) {
+    final DateTime createdDate = DateTime.parse(createdAt);
+    final DateTime expiryDate = createdDate.add(const Duration(days: 7));
+    return expiryDate.difference(DateTime.now()).inDays;
+  }
+
+// 남은 날짜를 표시하는 위젯 (색상 변화 포함)
+  Widget _buildRemainingDaysWidget(String createdAt) {
+    final int remainingDays = _daysUntilExpiry(createdAt);
+    final bool isCritical = remainingDays <= 3; // 3일 이하일 때 빨간색으로 표시
+
+    return Text(
+      remainingDays == 0 ? '오늘까지' : 'D-$remainingDays', // D-0일 때 "오늘까지"로 표시
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: isCritical ? Colors.red : Colors.black, // 조건에 따라 색상 변경
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -213,13 +241,20 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '이 쓰레기는 무엇일까요?',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween, // 수평 정렬
+                            crossAxisAlignment: CrossAxisAlignment.center, // 수직 정렬
+                            children: [
+                              Text(
+                                '이 쓰레기는 무엇일까요?',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              _buildRemainingDaysWidget(vote['created_at']), // 오른쪽에 배치
+                            ],
                           ),
                           const SizedBox(height: 20),
                           Image.network(
@@ -237,9 +272,9 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _buildVoteButton('plastic', vote['vote_no'], alreadyVoted),
-                              _buildVoteButton('glass', vote['vote_no'], alreadyVoted),
-                              _buildVoteButton('metal', vote['vote_no'], alreadyVoted),
+                              _buildVoteButton('플라스틱', vote['vote_no'], alreadyVoted),
+                              _buildVoteButton('유리', vote['vote_no'], alreadyVoted),
+                              _buildVoteButton('메탈', vote['vote_no'], alreadyVoted),
                             ],
                           ),
                           const SizedBox(height: 20),
@@ -285,12 +320,13 @@ class _VoteBoardPageState extends State<VoteBoardPage> {
 
   Widget _buildVoteButton(String label, int voteNo, bool alreadyVoted) {
     final bool alreadyVoted = voteList.any((vote) => vote['vote_no'] == voteNo && vote['user_voted'] == true);
+    final String option = _optionMapping[label] ?? label;
 
     return ElevatedButton(
       onPressed: alreadyVoted
           ? null // 이미 투표한 경우 버튼 비활성화
       : () async {
-        await updateVote(widget.userNo, voteNo, label); // userNo 전달
+        await updateVote(widget.userNo, voteNo, option); // userNo 전달
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: alreadyVoted ? Colors.grey : Colors.white,
