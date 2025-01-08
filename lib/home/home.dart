@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
 
   // 뉴스 데이터를 가져오는 함수
   Future<void> fetchArticles() async {
-    final String url = 'http://192.168.0.116:5001/api/news'; // Flask 서버 URL
+    final String url = 'http://222.112.27.120:5002/api/news'; // Flask 서버 URL
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
