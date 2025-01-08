@@ -251,11 +251,12 @@ class _ShoppingPageState extends State<ShoppingPage> {
           : Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0), // 좌우 여백 추가
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // 한 줄에 2개의 상품
-            crossAxisSpacing: 16.0, // 아이템 간의 가로 간격
-            mainAxisSpacing: 16.0, // 아이템 간의 세로 간격
-            childAspectRatio: 0.9, // 카드 비율 조정
+            crossAxisSpacing: 23.0, // 상품 간의 가로 간격
+            mainAxisSpacing: 16.0, // 상품 간의 세로 간격
+            childAspectRatio: 0.8, // 카드의 가로세로 비율 조정
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
@@ -274,13 +275,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
                 );
               },
               child: Column(
-                mainAxisSize: MainAxisSize.min, // 아이템의 크기를 내용에 맞게 최소화
-                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min, // 아이템 크기를 내용에 맞게 최소화
+                crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 정렬 유지
                 children: [
-                  // 상품 이미지 (정사각형, 가로 길이 줄임)
+                  // 상품 이미지
                   Container(
-                    width: 138, // 가로 길이를 줄임
-                    height: 138, // 정사각형으로 유지
+                    width: 138,
+                    height: 138,
                     decoration: BoxDecoration(
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(12.0),
@@ -306,7 +307,6 @@ class _ShoppingPageState extends State<ShoppingPage> {
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -324,7 +324,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
               ),
             );
           },
-        ),
+        )
       ),
     );
   }}
