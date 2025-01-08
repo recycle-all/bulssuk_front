@@ -573,8 +573,8 @@ class _CalendarPageState extends State<CalendarPage> {
                           if (_monthImage != null)
                             Image.asset(
                               _monthImage!,
-                              width: 24,
-                              height: 24,
+                              width: 35,
+                              height: 35,
                               fit: BoxFit.cover,
                             ),
                         ],
