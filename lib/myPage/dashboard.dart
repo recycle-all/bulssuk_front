@@ -23,14 +23,17 @@ class _DashboardState extends State<Dashboard> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   final String? _url = dotenv.env['URL'];
   String _userName = 'Guest';
-  int _totalPoints = 0;  // 보유 포인트 추가
+  int _totalPoints = 0;
   bool _isLoading = true;
+  String _treeStatus = 'Loading...'; // 나무 상태 텍스트
+  String _treeImage = ''; // 나무 이미지 URL
 
   @override
   void initState() {
     super.initState();
     _loadUserName();
-    _fetchTotalPoints();  // 보유 포인트 로드
+    _fetchTotalPoints();
+    _fetchTreeStatus();
   }
 
   // ✅ Secure Storage에서 사용자 이름 로드
@@ -45,7 +48,7 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  // ✅ 보유 포인트 불러오는 메서드 추가
+  // ✅ 보유 포인트 불러오는 메서드
   Future<void> _fetchTotalPoints() async {
     try {
       if (_url == null) throw Exception('API URL이 설정되지 않았습니다.');
@@ -64,7 +67,6 @@ class _DashboardState extends State<Dashboard> {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final int totalPoints = (data['totalPoints'] ?? 0).toInt();
-        print('✅ 데이터베이스에서 가져온 보유 포인트: $totalPoints');
         setState(() {
           _totalPoints = totalPoints;
           _isLoading = false;
@@ -74,16 +76,53 @@ class _DashboardState extends State<Dashboard> {
       }
     } catch (error) {
       print('❌ 오류 발생: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('보유 포인트 불러오기 실패: $error')),
-      );
       setState(() {
         _isLoading = false;
       });
     }
   }
 
-  /// 로그아웃 기능
+  // ✅ 나무 상태 및 이미지 불러오는 메서드 추가
+  Future<void> _fetchTreeStatus() async {
+    try {
+      final token = await _storage.read(key: 'jwt_token');
+      if (token == null) {
+        print('JWT 토큰이 없습니다.');
+        throw Exception('로그인이 필요합니다.');
+      }
+
+      print('📩 API 호출 시작 - 토큰 포함');
+      final response = await http.get(
+        Uri.parse('$_url/dashboard_tree'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('🔄 API 응답 코드: ${response.statusCode}');
+      print('🔄 API 응답 데이터: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _treeStatus = data['dashboard_tree_content'] ?? '정보 없음';
+          _treeImage = 'assets${data['dashboard_tree_img'].replaceFirst('/uploads/images', '')}';
+          _isLoading = false;
+        });
+        print('✅ 나무 상태 데이터 반영 완료: $_treeStatus');
+      } else {
+        throw Exception('서버에서 나무 상태를 찾을 수 없습니다.');
+      }
+    } catch (error) {
+      print('❌ 나무 상태 불러오기 실패: $error');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  // ✅ 로그아웃 기능
   Future<void> logout(BuildContext context) async {
     try {
       await _storage.deleteAll();
@@ -111,50 +150,58 @@ class _DashboardState extends State<Dashboard> {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     '$_userName님',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 30),
-                  Container(
-                    width: 150,
-                    height: 150,
-                    decoration: const BoxDecoration(shape: BoxShape.circle),
-                    child: Image.asset(
-                      'assets/tree2.png',
+
+                  // ✅나무 이미지 표시
+                  _isLoading
+                      ? const CircularProgressIndicator()
+                      : ClipOval(
+                    child: _treeImage.isNotEmpty
+                        ? Image.asset(
+                      _treeImage, // ✅ 로컬 이미지 경로로 수정
+                      width: 150,
+                      height: 150,
                       fit: BoxFit.cover,
-                    ),
+                      errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.error, size: 150),
+                    )
+                        : const Center(child: Text('이미지 없음')),
                   ),
                   const SizedBox(height: 25),
+
+                  // ✅ 나무 상태 텍스트 (나무 멘트 디자인 적용)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFF67EACA), width: 1.5),
-                      borderRadius: BorderRadius.circular(12.0),
+                      color: const Color(0xFFFCF9EC), // 연한 배경색
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      '현재 나무 상태',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    child: Text(
+                      _treeStatus, // 나무 상태 텍스트
                       textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
 
-            /// 포인트 카드 (서버에서 가져온 값으로 표시)
+            /// ✅ 포인트 카드 (서버에서 가져온 값으로 표시)
             Card(
               color: const Color(0xFFB0F4E6),
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 title: const Text('내 포인트'),
                 trailing: _isLoading
-                    ? const CircularProgressIndicator() // 로딩 중이면 로딩 표시
+                    ? const CircularProgressIndicator()
                     : Text(
                   '$_totalPoints p',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
