@@ -33,7 +33,7 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
     _loadUserName();
     _fetchTotalPoints();
-    _fetchTreeStatus(); // ✅ 나무 상태 불러오기
+    _fetchTreeStatus();
   }
 
   // ✅ Secure Storage에서 사용자 이름 로드
@@ -107,10 +107,10 @@ class _DashboardState extends State<Dashboard> {
         final data = jsonDecode(response.body);
         setState(() {
           _treeStatus = data['dashboard_tree_content'] ?? '정보 없음';
-          _treeImage = data['dashboard_tree_img'] ?? '';
-          _isLoading = false; // ✅ 데이터 수신 완료 후 로딩 해제
+          _treeImage = 'assets${data['dashboard_tree_img'].replaceFirst('/uploads/images', '')}';
+          _isLoading = false;
         });
-        print('✅나무 상태 데이터 반영 완료: $_treeStatus');
+        print('✅ 나무 상태 데이터 반영 완료: $_treeStatus');
       } else {
         throw Exception('서버에서 나무 상태를 찾을 수 없습니다.');
       }
@@ -157,16 +157,38 @@ class _DashboardState extends State<Dashboard> {
                   ),
                   const SizedBox(height: 30),
 
-                  // ✅ 나무 이미지와 상태 표시
-                  _treeImage.isNotEmpty
-                      ? Image.network(_treeImage, width: 150, height: 150)
-                      : const CircularProgressIndicator(),
-
+                  // ✅나무 이미지 표시
+                  _isLoading
+                      ? const CircularProgressIndicator()
+                      : ClipOval(
+                    child: _treeImage.isNotEmpty
+                        ? Image.asset(
+                      _treeImage, // ✅ 로컬 이미지 경로로 수정
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.error, size: 150),
+                    )
+                        : const Center(child: Text('이미지 없음')),
+                  ),
                   const SizedBox(height: 25),
-                  Text(
-                    _treeStatus, // ✅ 나무 상태 설명 표시
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.center,
+
+                  // ✅ 나무 상태 텍스트 (나무 멘트 디자인 적용)
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFCF9EC), // 연한 배경색
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _treeStatus, // 나무 상태 텍스트
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                    ),
                   ),
                 ],
               ),
