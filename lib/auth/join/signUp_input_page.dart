@@ -272,6 +272,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     ),
                   ),
                 ),
+                SizedBox(width: 5),
                 Text('@'),
                 SizedBox(width: 5),
                 Expanded(
@@ -342,7 +343,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () async {
                     final email = _emailController.text;
@@ -424,7 +425,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                       ),
                     ),
                   ),
-                  SizedBox(width: 10),
+                  SizedBox(width: 20),
                   ElevatedButton(
                     onPressed: () async {
                       final email = _emailController.text;
@@ -474,17 +475,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                 ],
               ),
             ],
-
-            // 서버 응답 메시지 표시
-            if (_serverMessage != null) ...[
-              SizedBox(height: 20),
-              Text(
-                _serverMessage!,
-                style: TextStyle(color: Colors.red),
-              ),
-            ],
-
-
+            SizedBox(height: 20),
             // 아이디 입력
             Row(
               children: [
@@ -515,7 +506,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     ),
                   ),
                 ),
-                SizedBox(width: 10),
+                SizedBox(width: 20),
                 ElevatedButton(
                   onPressed: () async {
                     final userId = _idController.text; // 아이디 값
@@ -649,125 +640,131 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
             ),
 
             // 회원가입 완료 버튼
-            Center(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final name = _nameController.text.trim(); // 공백 제거
-                  final birthDate = _selectedYear != null && _selectedMonth != null && _selectedDay != null
-                      ? '$_selectedYear-$_selectedMonth-$_selectedDay'
-                      : '';
-                  final email = _emailController.text.trim() + '@' +
-                      (_selectedEmailDomain == '직접 입력'
-                          ? _customDomainController.text.trim()
-                          : _selectedEmailDomain ?? '');
-                  final userId = _idController.text.trim();
-                  final password = _passwordController.text.trim();
-                  final confirmPassword = _confirmPasswordController.text.trim();
+            ElevatedButton(
+              onPressed: () async {
+                final name = _nameController.text.trim();
+                final birthDate = _selectedYear != null && _selectedMonth != null && _selectedDay != null
+                    ? '$_selectedYear-$_selectedMonth-$_selectedDay'
+                    : '';
+                final email = _emailController.text.trim() + '@' +
+                    (_selectedEmailDomain == '직접 입력'
+                        ? _customDomainController.text.trim()
+                        : _selectedEmailDomain ?? '');
+                final userId = _idController.text.trim();
+                final password = _passwordController.text.trim();
+                final confirmPassword = _confirmPasswordController.text.trim();
 
-                  // 이메일 및 아이디 중복 확인 검사
-                  if (!_isEmailVerified) {
-                    setState(() {
-                      _serverMessage = '이메일 인증을 완료하세요.';
-                    });
-                    return;
-                  }
+                // 이메일 및 아이디 중복 확인 검사
+                if (!_isEmailVerified) {
+                  setState(() {
+                    _serverMessage = '이메일 인증을 완료하세요.';
+                  });
+                  return;
+                }
 
-                  if (!_isIdChecked) {
-                    setState(() {
-                      _serverMessage = '아이디 중복 확인을 완료하세요.';
-                    });
-                    return;
-                  }
+                if (!_isIdChecked) {
+                  setState(() {
+                    _serverMessage = '아이디 중복 확인을 완료하세요.';
+                  });
+                  return;
+                }
 
-                  // 필드 유효성 검사
-                  if (name.isEmpty) {
-                    setState(() {
-                      _serverMessage = '이름을 입력하세요.';
-                    });
-                    return;
-                  }
+                // 필드 유효성 검사
+                if (name.isEmpty) {
+                  setState(() {
+                    _serverMessage = '이름을 입력하세요.';
+                  });
+                  return;
+                }
 
-                  if (birthDate.isEmpty || _selectedYear == null || _selectedMonth == null || _selectedDay == null) {
-                    setState(() {
-                      _serverMessage = '생년월일을 선택하세요.';
-                    });
-                    return;
-                  }
+                if (birthDate.isEmpty || _selectedYear == null || _selectedMonth == null || _selectedDay == null) {
+                  setState(() {
+                    _serverMessage = '생년월일을 선택하세요.';
+                  });
+                  return;
+                }
 
-                  if (email.isEmpty) {
-                    setState(() {
-                      _serverMessage = '이메일을 입력하세요.';
-                    });
-                    return;
-                  }
+                if (email.isEmpty) {
+                  setState(() {
+                    _serverMessage = '이메일을 입력하세요.';
+                  });
+                  return;
+                }
 
-                  if (userId.isEmpty) {
-                    setState(() {
-                      _serverMessage = '아이디를 입력하세요.';
-                    });
-                    return;
-                  }
+                if (userId.isEmpty) {
+                  setState(() {
+                    _serverMessage = '아이디를 입력하세요.';
+                  });
+                  return;
+                }
 
-                  if (password.isEmpty || confirmPassword.isEmpty) {
-                    setState(() {
-                      _serverMessage = '비밀번호를 입력하세요.';
-                    });
-                    return;
-                  }
+                if (password.isEmpty || confirmPassword.isEmpty) {
+                  setState(() {
+                    _serverMessage = '비밀번호를 입력하세요.';
+                  });
+                  return;
+                }
 
-                  if (password != confirmPassword) {
-                    setState(() {
-                      _serverMessage = '비밀번호가 일치하지 않습니다.';
-                    });
-                    return;
-                  }
+                if (password != confirmPassword) {
+                  setState(() {
+                    _serverMessage = '비밀번호가 일치하지 않습니다.';
+                  });
+                  return;
+                }
 
-                  final url = Uri.parse('$URL/sign_up');
-                  try {
-                    final response = await http.post(
-                      url,
-                      headers: {'Content-Type': 'application/json'},
-                      body: json.encode({
-                        'name': name,
-                        'birth_date': birthDate,
-                        'email': email,
-                        'user_id': userId,
-                        'password': password,
-                      }),
+                final url = Uri.parse('$URL/sign_up');
+                try {
+                  final response = await http.post(
+                    url,
+                    headers: {'Content-Type': 'application/json'},
+                    body: json.encode({
+                      'name': name,
+                      'birth_date': birthDate,
+                      'email': email,
+                      'user_id': userId,
+                      'password': password,
+                    }),
+                  );
+
+                  if (!mounted) return;
+
+                  // 회원가입 성공
+                  if (response.statusCode == 200 || response.statusCode == 201) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('회원가입을 완료했습니다. 로그인 후 이용해주세요.'),
+                        backgroundColor: Colors.green,
+                      ),
                     );
-
-                    if (!mounted) return;
-                    if (response.statusCode == 200 || response.statusCode == 201) {
-                      Navigator.pushNamed(context, '/'); // 경로 설정
-                      print('회원가입 완료');
-                    } else {
-                      setState(() {
-                        _serverMessage = '회원가입 실패: ${response.statusCode}';
-                      });
-                    }
-                  } catch (error) {
+                    Navigator.pushNamed(context, '/login'); // 로그인 페이지로 이동
+                    print('회원가입 완료');
+                  } else {
                     setState(() {
-                      _serverMessage = '통신 오류: $error';
+                      _serverMessage = '회원가입 실패: ${response.statusCode}';
                     });
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFB0F4E6), // 버튼 색상
-                  padding: EdgeInsets.symmetric(vertical: 16.0), // 사용자 선호 패딩
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10), // 둥근 테두리
-                  ),
-                  minimumSize: Size(double.infinity, 48), // 버튼 크기 설정
+                } catch (error) {
+                  setState(() {
+                    _serverMessage = '통신 오류: $error';
+                  });
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFFB0F4E6),
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  '회원가입 완료',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                  ),
+                minimumSize: Size(double.infinity, 48),
+              ),
+              child: Text(
+                '회원가입 완료',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),
