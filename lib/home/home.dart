@@ -1,3 +1,4 @@
+
 import 'dart:async'; // Timer를 위해 추가
 import 'package:bulssuk/home/AI/voting.dart';
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _HomePageState extends State<HomePage> {
 
   // 뉴스 데이터를 가져오는 함수
   Future<void> fetchArticles() async {
-    final String url = 'http://192.168.0.116:5001/api/news'; // Flask 서버 URL
+    final String url = 'http://222.112.27.120:5002/api/news'; // Flask 서버 URL
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -545,7 +546,22 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       bottomNavigationBar: const BottomNavigationSection(currentIndex: 0), // 하단 네비게이션 바
+      // **추가된 FloatingActionButton**
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/chatbot'); // '/chatbot' 경로로 이동
+        },
+        backgroundColor: const Color(0xFFB0F4E6), // 버튼 색상
+        child: const Icon(
+          Icons.chat, // 채팅 아이콘
+          color: Colors.white, // 아이콘 색상 (예: 흰색)
+        ),
+
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat, // 화면 하단 오른쪽
     );
+  }
+
   }
 
   // 분리수거 가이드 아이템 위젯
@@ -638,4 +654,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
+
