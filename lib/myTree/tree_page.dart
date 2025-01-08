@@ -52,7 +52,25 @@ class _TreePageState extends State<TreePage> {
     loadUserData(); // 사용자 데이터 로드
     fetchUserPoints();
     fetchCoupons();
+    fetchTreeManageActions();
   }
+
+  List<dynamic> treeActions = []; // tree_manage 데이터를 저장할 리스트
+
+  Future<void> fetchTreeManageActions() async {
+    final uri = Uri.parse('$URL/tree/manage'); // 백엔드 API URL
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        treeActions = data['data']; // tree_manage 데이터를 저장
+      });
+    } else {
+      print("Failed to fetch tree_manage actions: ${response.body}");
+    }
+  }
+
 
   Future<void> fetchUserPoints() async {
     final token = await storage.read(key: "jwt_token");
@@ -137,7 +155,7 @@ class _TreePageState extends State<TreePage> {
         setState(() {
           treeStatus = data['tree_status'] ?? "상태 없음";
           treeContent = data['tree_content'] ?? "내용 없음";
-          treeImage = "$URL${data['tree_img']}" ?? "";
+          treeImage = 'assets${data['tree_img'].replaceFirst('/uploads/images', '')}';
           treePoints = data['tree_points_total'] ?? 0;
         });
 
@@ -154,7 +172,8 @@ class _TreePageState extends State<TreePage> {
   void checkLevelUp() {
     double percent = calculateLevelPercent(treePoints, treeStatus);
 
-    print("레벨 확인: treeStatus=$treeStatus, treePoints=$treePoints, percent=$percent");
+    print(
+        "레벨 확인: treeStatus=$treeStatus, treePoints=$treePoints, percent=$percent");
 
     if (percent >= 1.0) {
       if (treeStatus == "씨앗") {
@@ -170,20 +189,59 @@ class _TreePageState extends State<TreePage> {
   }
 
 
+  // 레벨업 모달 함수
   void showLevelUpDialog(String nextLevel) {
     showDialog(
       context: context,
       barrierDismissible: false, // 모달 외부를 누르면 닫히지 않도록 설정
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('$nextLevel으로 레벨업 하시겠습니까?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16), // 모달 둥근 테두리
+          ),
+          backgroundColor: const Color(0xFFFCF9EC), // 모달 배경색
+          title: Column(
+            children: [
+              Text(
+                "레벨업!",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF67EACA),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Text(
+                "$nextLevel로 레벨업 하시겠습니까?",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+            ],
+          ),
+          actionsAlignment: MainAxisAlignment.center, // 버튼을 모달 가운데 정렬
           actions: [
             TextButton(
-              child: Text('취소'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            TextButton(
-              child: Text('확인'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 24,
+                ), // 버튼 크기 설정
+                minimumSize: const Size(110, 50), // 버튼 최소 크기 설정
+                backgroundColor: Colors.white, // 배경색
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12), // 둥근 버튼
+                ),
+                foregroundColor: Colors.black, // 텍스트 색상
+                textStyle: const TextStyle(
+                  fontSize: 16, // 텍스트 크기
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: const Text(
+                  "확인"
+              ),
               onPressed: () async {
                 Navigator.pop(context);
                 await levelUp(nextLevel); // 레벨업 API 호출
@@ -195,6 +253,7 @@ class _TreePageState extends State<TreePage> {
     );
   }
 
+  // 레벨업 기능 함수
   Future<void> levelUp(String nextLevel) async {
     if (userNo == null) {
       print("Error: userNo가 null입니다. 레벨업 요청을 중단합니다.");
@@ -230,22 +289,161 @@ class _TreePageState extends State<TreePage> {
     }
   }
 
+  // 물주기, 햇빛쐬기, 비료주기 모달 함수
   void showActionDialog(String actionType) {
+    final actionData = treeActions.firstWhere(
+          (action) => action['tree_manage'] == actionType,
+      orElse: () => null,
+    );
+
+    if (actionData == null) {
+      print("Error: 해당 작업 데이터를 찾을 수 없습니다.");
+      return;
+    }
+
+    // 이미지 경로를 생성
+    final imagePath = 'assets${actionData['manage_img'].replaceFirst('/uploads/images', '')}';
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('$actionType 하시겠습니까?'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16), // 모달 둥근 테두리
+          ),
+          backgroundColor: const Color(0xFFFCF9EC), // 모달 배경색
+          title: Column(
+            children: [
+              Image.asset(
+                imagePath, // 이미지 경로
+                height: 80, // 이미지 높이 조정
+                fit: BoxFit.contain, // 이미지 비율 유지
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "$actionType 하시겠습니까?",
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          contentPadding: const EdgeInsets.all(20), // 모달 내부 여백 조정
+          actionsAlignment: MainAxisAlignment.center, // 버튼을 모달 가운데 정렬
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 버튼 간격 균등
+              children: [
+                // 취소 버튼
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 24,
+                    ), // 버튼 크기 설정
+                    minimumSize: const Size(110, 50), // 버튼 최소 크기 설정
+                    backgroundColor: Colors.white, // 배경색
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // 둥근 버튼
+                    ),
+                    foregroundColor: Colors.black, // 텍스트 색상
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16, // 텍스트 크기 설정
+                    ),
+                  ),
+                  child: const Text("취소"),
+                  onPressed: () => Navigator.pop(context),
+                ),
+
+                // 확인 버튼
+                TextButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 24,
+                    ), // 버튼 크기 설정
+                    minimumSize: const Size(110, 50), // 버튼 최소 크기 설정
+                    backgroundColor: Colors.white, // 배경색
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // 둥근 버튼
+                    ),
+                    foregroundColor: Colors.black, // 텍스트 색상
+                    textStyle: const TextStyle(
+                      fontSize: 16, // 텍스트 크기
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  child: const Text(
+                    "확인"
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    performAction(actionType); // API 호출
+                  },
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  // 포인트 부족 모달 함수
+  void showInsufficientPointsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // 모달 외부를 눌러도 닫히지 않도록 설정
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16), // 모달 둥근 테두리
+          ),
+          backgroundColor: const Color(0xFFFCF9EC), // 모달 배경색
+          title: const Center(
+            child: Text(
+              "포인트 부족",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          content: const Text(
+            "포인트가 부족합니다.",
+            textAlign: TextAlign.center, // 텍스트 중앙 정렬
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black54,
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center, // 버튼을 모달 중앙 정렬
           actions: [
             TextButton(
-              child: Text('취소'),
-              onPressed: () => Navigator.pop(context),
-            ),
-            TextButton(
-              child: Text('확인'),
+              style: ElevatedButton.styleFrom(
+                elevation: 0, // 그림자 제거
+                minimumSize: const Size(110, 50), // 버튼 최소 크기 설정
+                backgroundColor: Colors.white, // 버튼 배경색
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12), // 둥근 버튼
+                ),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 24,
+                ), // 버튼 크기 설정
+              ),
+              child: const Text(
+                "확인",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black, // 텍스트 색상
+                ),
+              ),
               onPressed: () {
-                Navigator.pop(context);
-                performAction(actionType); // API 호출
+                Navigator.pop(context); // 모달 닫기
               },
             ),
           ],
@@ -254,9 +452,28 @@ class _TreePageState extends State<TreePage> {
     );
   }
 
+
   Future<void> performAction(String actionType) async {
     if (userNo == null || userNo!.isEmpty) {
       print("Error: user_no가 null이거나 비어 있습니다.");
+      return;
+    }
+
+    // 선택한 작업에 필요한 포인트 계산
+    final selectedAction = treeActions.firstWhere(
+          (action) => action['tree_manage'] == actionType,
+      orElse: () => null,
+    );
+
+    if (selectedAction == null) {
+      print("Error: 선택한 작업을 찾을 수 없습니다.");
+      return;
+    }
+
+    final requiredPoints = int.parse(selectedAction['manage_points'].toString());
+    if (points < requiredPoints) {
+      // 포인트 부족 모달 호출
+      showInsufficientPointsDialog();
       return;
     }
 
@@ -310,102 +527,172 @@ class _TreePageState extends State<TreePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const TopNavigationSection(title: '나무 키우기'),
-      body: Column(
-        children: [
-          // **포인트 및 쿠폰 표시 영역**
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            color: Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 상단 포인트 및 쿠폰 요약
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
+                _summaryTile(
+                  title: "현재 내 포인트",
+                  value: "$points P",
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => PointPage(), // totalPoints 전달
-                      ),
+                      MaterialPageRoute(builder: (context) => PointPage()),
                     );
                   },
-                  child: Column(
-                    children: [
-                      const Text("내 포인트", style: TextStyle(fontSize: 16)),
-                      Text('$points P', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
                 ),
-                GestureDetector(
+                _summaryTile(
+                  title: "내 쿠폰함",
+                  value: "$availableCoupons 개",
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CouponPage()), // 쿠폰 페이지 이동
+                      MaterialPageRoute(builder: (context) => CouponPage()),
                     );
                   },
-                  child: Column(
-                    children: [
-                      const Text("쿠폰함", style: TextStyle(fontSize: 16)),
-                      Text('$availableCoupons 개', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    treeStatus,
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 16),
-                  Image.network(
-                    treeImage,
-                    height: 200,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(Icons.image, size: 200);
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    treeContent,
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  SizedBox(height: 16),
-                  LinearProgressIndicator(
+            const SizedBox(height: 20),
+
+            // 나무 상태 및 게이지 바
+            Column(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12), // 둥근 모서리 반경 설정
+                  child: LinearProgressIndicator(
                     value: calculateLevelPercent(treePoints, treeStatus),
-                    minHeight: 10,
+                    minHeight: 20,
+                    color: const Color(0xFF67EACA), // 게이지 바 색상
+                    backgroundColor: Colors.grey[300], // 배경색
                   ),
-                  SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => showActionDialog("물주기"),
-                        child: Text('물주기'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => showActionDialog("햇빛쐬기"),
-                        child: Text('햇빛쐬기'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => showActionDialog("비료주기"),
-                        child: Text('비료주기'),
-                      ),
-                    ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // 나무 멘트
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 60),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFCF9EC),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
-              ),
+                  child: Text(
+                    treeContent,
+                    textAlign: TextAlign.center, // 텍스트 중앙 정렬
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                Image.asset(
+                  treeImage,
+                  height: 150,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Icon(Icons.image, size: 150, color: Colors.grey); // 에러 처리
+                  },
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+
+            // 작업 버튼
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: treeActions.map((action) {
+                final imgPath = 'assets${action['manage_img'].replaceFirst('/uploads/images', '')}';
+
+                return SizedBox(
+                  width: 100, // 버튼 너비
+                  height: 120, // 버튼 높이
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(8),
+                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Color(0xFF67EACA)),
+                      ),
+                    ),
+                    onPressed: () => showActionDialog(action['tree_manage']), // 작업 이름 전달
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center, // 콘텐츠를 중앙 정렬
+                      children: [
+                        Image.asset(
+                          imgPath, // 이미지 경로
+                          height: 40, // 이미지 크기 조정
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.image, size: 40, color: Colors.grey); // 에러 처리
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          action['tree_manage'], // 작업 이름
+                          style: const TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "${action['manage_points']}p", // 포인트 표시
+                          style: const TextStyle(fontSize: 12, color: Colors.black54),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: const BottomNavigationSection(currentIndex: 2),
     );
   }
 
+  Widget _summaryTile({
+    required String title,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, // 텍스트 간 간격 조정
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          ),
+          const SizedBox(width: 8), // 제목과 숫자 간격
+          Container(
+            width: 60, // 박스 너비 설정
+            height: 30, // 박스 높이 설정
+            alignment: Alignment.center, // 텍스트를 박스 중앙에 배치
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18), // 둥근 모서리
+              border: Border.all(
+                color: Colors.grey, // 테두리 색상
+              ),
+            ),
+            child: Text(
+              value,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
