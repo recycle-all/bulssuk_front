@@ -54,9 +54,8 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
         throw Exception('쿠폰 조회 실패: ${response.statusCode}');
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('쿠폰 조회 실패: $error')),
-      );
+      // 콘솔에 에러 메시지 출력 (스낵바 제거)
+      debugPrint('쿠폰 조회 실패: $error');
       setState(() {
         _isLoading = false;
       });
