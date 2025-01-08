@@ -359,9 +359,7 @@ class _TreePageState extends State<TreePage> {
       } else if (treeStatus == "가지") {
         showLevelUpDialog("나무");
       } else if (treeStatus == "나무") {
-        setState(() {
-          treeStatus = "꽃"; // "꽃"으로 상태 변경
-        });
+        showLevelUpDialog("꽃");
       }
     }
   }
