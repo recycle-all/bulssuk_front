@@ -44,7 +44,7 @@ class _CalendarPageState extends State<CalendarPage> {
         _loadAlarms(); // 캘린더 알람 데이터 로드 추가
         _loadMonthlyAttendance(); // 이번 달 출석 데이터 로드
         _loadEvents(); // 이벤트 데이터 로드
-        print('Loaded Events: $_events');
+        // print('Loaded Events: $_events');
       });
     });
   }
@@ -451,8 +451,8 @@ class _CalendarPageState extends State<CalendarPage> {
       final response = await http.get(
         Uri.parse('$URL/get_event/$year/$month'),
       );
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      // print('Response status: ${response.statusCode}');
+      // print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
@@ -470,7 +470,7 @@ class _CalendarPageState extends State<CalendarPage> {
             };
           }).toList();
 
-          print('Updated Events: $_events'); // 업데이트된 _events 출력
+          // print('Updated Events: $_events'); // 업데이트된 _events 출력
         });
       } else {
         print('Failed to fetch events: ${response.statusCode}');
