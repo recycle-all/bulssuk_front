@@ -1,3 +1,4 @@
+import 'package:bulssuk/widgets/top_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -34,7 +35,7 @@ class _PointPageState extends State<PointPage> {
       if (token == null) throw Exception('로그인이 필요합니다.');
 
       final response = await http.get(
-        Uri.parse('$_url/total_point'),  // ✅ 백엔드의 보유 포인트 조회 경로
+        Uri.parse('$_url/total_point'), // ✅ 백엔드의 보유 포인트 조회 경로
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -55,7 +56,7 @@ class _PointPageState extends State<PointPage> {
         throw Exception('보유 포인트 조회 실패');
       }
     } catch (error) {
-      print('❌ 오류 발생: $error');  // ✅ 오류 로그 추가
+      print('❌ 오류 발생: $error'); // ✅ 오류 로그 추가
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('보유 포인트 불러오기 실패: $error')),
       );
@@ -105,10 +106,27 @@ class _PointPageState extends State<PointPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('포인트 내역')),
+      appBar: const TopNavigationSection(title: '내 포인트'),
       body: Column(
         children: [
-          _buildTotalPointsCard(), // ✅ 보유 포인트 카드 수정 완료
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFCF9EC), // 배경색 설정
+                borderRadius: BorderRadius.circular(0), // 각진 네모
+              ),
+              padding: const EdgeInsets.all(16.0), // 내부 여백
+              child: const Text(
+                '- 포인트는 나무키우기와 리사이클링 제품 구매에 사용할 수 있습니다.\n'
+                    '- 포인트는 출석체크, 친환경 문제, 분리수거 투표를 통해 얻을 수 있습니다.',
+                style: TextStyle(fontSize: 12, color: Colors.black87),
+                textAlign: TextAlign.left, // 텍스트 좌측 정렬
+              ),
+            ),
+          ),
+          _buildTotalPointsCard(),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -126,7 +144,7 @@ class _PointPageState extends State<PointPage> {
     );
   }
 
-  /// ✅ 보유 포인트 표시 카드 (수정 완료)
+  // 총 보유 포인트 카드
   Widget _buildTotalPointsCard() {
     return Container(
       width: double.infinity,
@@ -135,21 +153,27 @@ class _PointPageState extends State<PointPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.0),
         ),
+        color: const Color(0xFFA7E5D3),
+        // 배경색 수정
         margin: const EdgeInsets.symmetric(vertical: 8.0),
         elevation: 3.0,
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 '보유 포인트',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 10.0),
               Text(
-                '$_totalPoints p',  // ✅ 보유 포인트를 동적으로 표시
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                '$_totalPoints p', // ✅ 보유 포인트를 동적으로 표시
+                style: const TextStyle(fontSize: 34,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
             ],
           ),
@@ -158,76 +182,48 @@ class _PointPageState extends State<PointPage> {
     );
   }
 
+  // 포인트 내역들
   Widget _buildPointHistoryList() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: ListView.builder(
-        itemCount: _pointHistory.length,
-        itemBuilder: (context, index) {
-          final item = _pointHistory[index];
-          final isAdd = item['point_status'] == 'ADD';
-          return Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            margin: const EdgeInsets.symmetric(vertical: 8.0),
-            elevation: 2.0,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
+          children: _pointHistory.map((item) {
+            final isAdd = item['point_status'] == 'ADD';
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0), // 각 항목 간격 추가
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        flex: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 5.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item['point_reason'],
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 15.0),
-                              Text(
-                                item['created_at'],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                      Text(
+                        item['point_reason'],
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      Expanded(
-                        flex: 1,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            '${isAdd ? '+' : ''}${item['point_amount']}p',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isAdd ? Colors.green : Colors.red,
-                            ),
-                          ),
-                        ),
+                      const SizedBox(height: 4.0),
+                      Text(
+                        item['created_at'],
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
+                  Text(
+                    '${isAdd ? '+' : ''}${item['point_amount']}p',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isAdd ? Colors.green : Colors.red,
+                    ),
+                  ),
                 ],
               ),
-            ),
-          );
-        },
+            );
+          }).toList(),
+        ),
       ),
     );
   }
