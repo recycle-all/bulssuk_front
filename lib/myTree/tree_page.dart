@@ -362,7 +362,6 @@ class _TreePageState extends State<TreePage> {
         setState(() {
           treeStatus = "꽃"; // "꽃"으로 상태 변경
         });
-        showCouponSelectionDialog(); // "꽃" 레벨에서 쿠폰 모달 띄움
       }
     }
   }
