@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
         await requestNotificationPermission(); // 알림 권한 요청
         await initializeAlarmNotifications();  // 알림 초기화
         await scheduleUserAlarms(userNo);      // 알림 예약
-        print('알림 예약 완료!');
+        // print('알림 예약 완료!');
 
         // 홈 화면으로 이동
         Navigator.pushReplacementNamed(context, '/home');
