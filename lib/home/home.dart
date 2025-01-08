@@ -529,7 +529,7 @@ class _HomePageState extends State<HomePage> {
                       final company = companies[index];
                       // 데이터베이스 경로를 assets 경로로 변환
                       final imagePath = 'assets/${company['company_img'].trim().replaceFirst('/uploads/images/', '')}';
-                      print('Image Path: $imagePath'); // 디버깅용
+                      // print('Image Path: $imagePath'); // 디버깅용
                       return _buildRecyclingCard(
                         context,
                         company['company_name'], // 기업 이름
