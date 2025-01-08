@@ -48,16 +48,23 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
             _isLoading = false;
           });
         } else {
-          throw Exception('쿠폰 데이터가 유효하지 않습니다.');
+          // 유효하지 않은 데이터일 경우에도 빈 목록으로 처리
+          setState(() {
+            _coupons = [];
+            _isLoading = false;
+          });
         }
       } else {
-        throw Exception('쿠폰 조회 실패: ${response.statusCode}');
+        // 조회 실패 시에도 빈 목록으로 처리
+        setState(() {
+          _coupons = [];
+          _isLoading = false;
+        });
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('쿠폰 조회 실패: $error')),
-      );
+      // 에러 발생 시에도 빈 목록으로 처리
       setState(() {
+        _coupons = [];
         _isLoading = false;
       });
     }
@@ -67,12 +74,21 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final DateTime now = DateTime.now();
     final List<Map<String, dynamic>> availableCoupons = _coupons
-        .where((coupon) =>
-        DateTime.parse(coupon['expirationdate']).isAfter(now))
+        .where((coupon) {
+      final expirationDate = coupon['expirationdate'];
+      // expirationdate가 null인 경우도 안전하게 처리
+      if (expirationDate == null) return false;
+      return DateTime.parse(expirationDate).isAfter(now);
+    })
         .toList();
+
     final List<Map<String, dynamic>> expiredCoupons = _coupons
-        .where((coupon) =>
-        DateTime.parse(coupon['expirationdate']).isBefore(now))
+        .where((coupon) {
+      final expirationDate = coupon['expirationdate'];
+      // expirationdate가 null인 경우도 안전하게 처리
+      if (expirationDate == null) return false;
+      return DateTime.parse(expirationDate).isBefore(now);
+    })
         .toList();
 
     return Scaffold(
@@ -118,7 +134,7 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
   Widget _buildNoticeSection() {
     return Container(
       color: const Color(0xFFFCF9EC),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
@@ -136,6 +152,7 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
                 '• 쿠폰은 일부 상품에 적용되지 않을 수 있습니다.',
             style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
+          SizedBox(height: 8),
         ],
       ),
     );
@@ -157,11 +174,11 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
       itemBuilder: (context, index) {
         final coupon = coupons[index];
         return Card(
+          color: Colors.grey[100],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
           margin: const EdgeInsets.only(bottom: 16.0),
-          elevation: 2.0,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
