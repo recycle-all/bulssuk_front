@@ -266,12 +266,17 @@ class _CalendarPageState extends State<CalendarPage> {
 // 출석체크 저장과 포인트
   Future<void> _saveAttendance() async {
     if (userNo == null) return; // userNo가 없으면 요청 중지
+    final now = DateTime.now().toLocal(); // 로컬 시간으로 변환
+    final requestBody = {
+      'user_no': userNo,
+      'timestamp': now.toIso8601String(), // ISO8601 형식으로 변환
+    };
 
     try {
       final response = await http.post(
         Uri.parse('$URL/attendance'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'user_no': userNo}),
+        body: jsonEncode(requestBody),
       );
 
       if (response.statusCode == 200) {
