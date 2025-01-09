@@ -120,8 +120,8 @@ class _PointPageState extends State<PointPage> {
               ),
               padding: const EdgeInsets.all(16.0), // 내부 여백
               child: const Text(
-                '• 포인트는 나무키우기, 리사이클링 제품 구매에 사용할 수 있습니다.\n\n'
-                    '• 포인트는 출석체크, 친환경 문제, 분리수거 투표를 통해 얻을 수 있습니다.',
+                '• 획득한 포인트는 나무키우기, 리사이클링, 업사이클링 등 제품 구매에 사용할 수 있습니다.\n\n'
+                    '• 포인트는 출석 체크, 친환경 문제 풀기, 분리수거 투표 등 이벤트를 통해 얻을 수 있습니다.',
                 style: TextStyle(fontSize: 12, color: Colors.black87),
                 textAlign: TextAlign.left, // 텍스트 좌측 정렬
               ),
@@ -188,7 +188,7 @@ class _PointPageState extends State<PointPage> {
     return SingleChildScrollView(
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
           children: _pointHistory.map((item) {
