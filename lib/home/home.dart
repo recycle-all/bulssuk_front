@@ -376,7 +376,7 @@ class _HomePageState extends State<HomePage> {
                 onPageChanged: (index) {
                   if (index == articles.length - 1) {
                     // 마지막 뉴스에서 4초 후 첫 번째 뉴스로 이동
-                    Future.delayed(const Duration(seconds: 4), () {
+                    Future.delayed(const Duration(seconds: 5), () {
                       _pageController.jumpToPage(0); // 모션 없이 첫 번째로 이동
                     });
                   }

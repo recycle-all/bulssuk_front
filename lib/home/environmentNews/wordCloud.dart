@@ -34,7 +34,7 @@ class _WordCloudSectionState extends State<WordCloudSection> {
 
   // Flask 서버에서 워드클라우드 이미지 가져오기
   Future<void> fetchWordCloud() async {
-    final String url = 'http://192.168.0.116:5001/api/wordcloud'; // Flask 서버 URL
+    final String url = 'http://222.112.27.120:5002/api/wordcloud'; // Flask 서버 URL
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -95,7 +95,7 @@ class _ListSectionState extends State<ListSection> {
 
   // Flask 서버에서 기사 데이터 가져오기
   Future<void> fetchArticles() async {
-    final String url = 'http://192.168.0.116:5001/api/news';
+    final String url = 'http://222.112.27.120:5002/api/news';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
