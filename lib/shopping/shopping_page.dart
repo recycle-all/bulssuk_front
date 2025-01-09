@@ -271,40 +271,41 @@ class _ShoppingPageState extends State<ShoppingPage> {
       backgroundColor: const Color(0xFFFFFEFD),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : Center( // GridView를 화면 중앙으로 배치
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 한 줄에 2개의 상품
-              crossAxisSpacing: 23.0, // 상품 간의 가로 간격
-              mainAxisSpacing: 16.0, // 상품 간의 세로 간격
-              childAspectRatio: 0.78, // 카드의 가로세로 비율 조정
-            ),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ShoppingContentPage(
-                        shoppingNo: product["shopping_no"],
-                        onPurchase: handlePurchase,
-                        onCouponExchange: handleCouponExchange,
-                      ),
+          : Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0), // 좌우 여백 설정
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // 한 줄에 2개의 상품
+            crossAxisSpacing: 8.0, // 가로 간격
+            mainAxisSpacing: 16.0, // 세로 간격
+            childAspectRatio: 0.72, // 카드의 가로세로 비율 조정
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ShoppingContentPage(
+                      shoppingNo: product["shopping_no"],
+                      onPurchase: handlePurchase,
+                      onCouponExchange: handleCouponExchange,
                     ),
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min, // 아이템 크기를 내용에 맞게 최소화
-                  children: [
-                    // 상품 이미지
-                    Container(
-                      width: 150,
-                      height: 150,
+                  ),
+                );
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+
+                children: [
+                  // 상품 이미지
+                  AspectRatio(
+                    aspectRatio: 1, // 정사각형 비율 유지
+                    child: Container(
+                      width:120,
+                      height:120,
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12.0),
@@ -313,7 +314,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           image: AssetImage(
                             'assets/${product["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
                           ),
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                         )
                             : null,
                       ),
@@ -322,39 +323,37 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           size: 40, color: Colors.grey)
                           : null,
                     ),
-                    SizedBox(height: 8.0),
-                    // 상품 이름
-                    Text(
-                      (product["company_name"] ?? "Unknown").length + (product["shopping_title"] ?? "No Title").length > 20
-                          ? "[${product["company_name"] ?? "Unknown"}]\n${product["shopping_title"] ?? "No Title"}"
-                          : "[${product["company_name"] ?? "Unknown"}] ${product["shopping_title"] ?? "No Title"}",
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        fontSize: 12, // 기본 글자 크기
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2, // 최대 2줄로 제한
-                      overflow: TextOverflow.ellipsis, // 초과 시 줄임표 표시
+                  ),
+                  SizedBox(height: 8.0),
+                  // 상품 이름
+                  Text(
+                    "[${product["company_name"] ?? "Unknown"}] ${product["shopping_title"] ?? "No Title"}",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
-
-                    SizedBox(height: 4.0),
-                    // 포인트 정보
-                    Text(
-                      "${product["shopping_point"] ?? 0}포인트",
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                        color: Color(0xFF12D3CF),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4.0),
+                  // 포인트 정보
+                  Text(
+                    "${product["shopping_point"] ?? 0}포인트",
+                    textAlign: TextAlign.start,
+                    style: TextStyle(
+                      color: Color(0xFF12D3CF),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
+
     );
   }
 }
