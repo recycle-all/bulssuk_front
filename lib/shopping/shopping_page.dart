@@ -232,17 +232,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
         title: Text(
-          "친환경 제품 구매하기",
-          style: TextStyle(color: Colors.black),
+          '친환경 제품 구매하기', // 제목 텍스트
+          style: TextStyle(
+            fontWeight: FontWeight.normal, // 볼드 제거
+            fontSize: 18, // 텍스트 크기 조정
+            color: Colors.black, // 텍스트 색상 변경
+          ),
         ),
       ),
       backgroundColor: const Color(0xFFFFFEFD),
