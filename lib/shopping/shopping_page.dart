@@ -99,6 +99,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+
+        // 각 상품에 대해 회사 이름을 가져오는 작업 추가
+        for (var product in data) {
+          final companyName = await fetchCompanyName(product["shopping_title"]);
+          product["company_name"] = companyName; // company_name을 각 상품에 추가
+        }
+
         setState(() {
           products = data;
           isLoading = false;
@@ -111,6 +118,27 @@ class _ShoppingPageState extends State<ShoppingPage> {
         isLoading = false;
       });
       print("Error: $e");
+    }
+  }
+
+// 회사 이름 가져오는 함수
+  Future<String> fetchCompanyName(String shoppingTitle) async {
+    final url = Uri.parse('$URL/company_name?shopping_title=$shoppingTitle');
+    print('Fetching company name for URL: $url'); // 요청 URL 출력
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Response for $shoppingTitle: $data'); // 응답 데이터 출력
+        return data['company_name'] ?? 'Unknown'; // 회사 이름 반환
+      } else {
+        print('Failed to fetch company name. Status code: ${response.statusCode}');
+        throw Exception("Failed to fetch company name");
+      }
+    } catch (e) {
+      print("Error fetching company name: $e");
+      return 'Unknown'; // 오류 시 기본값
     }
   }
 
@@ -232,13 +260,17 @@ class _ShoppingPageState extends State<ShoppingPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text(
-          '친환경 제품 구매하기', // 제목 텍스트
-          style: TextStyle(
-            fontWeight: FontWeight.normal, // 볼드 제거
-            fontSize: 18, // 텍스트 크기 조정
-            color: Colors.black, // 텍스트 색상 변경
-          ),
+          "친환경 제품 구매하기",
+          style: TextStyle(color: Colors.black),
         ),
       ),
       backgroundColor: const Color(0xFFFFFEFD),
@@ -252,7 +284,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
               crossAxisCount: 2, // 한 줄에 2개의 상품
               crossAxisSpacing: 23.0, // 상품 간의 가로 간격
               mainAxisSpacing: 16.0, // 상품 간의 세로 간격
-              childAspectRatio: 0.8, // 카드의 가로세로 비율 조정
+              childAspectRatio: 0.7, // 카드의 가로세로 비율 조정
             ),
             itemCount: products.length,
             itemBuilder: (context, index) {
@@ -276,8 +308,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   children: [
                     // 상품 이미지
                     Container(
-                      width: 150,
-                      height: 150,
+                      width: 163,
+                      height: 163,
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12.0),
@@ -295,18 +327,21 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           size: 40, color: Colors.grey)
                           : null,
                     ),
-                    SizedBox(height: 8.0),
+                    SizedBox(height: 6.0),
                     // 상품 이름
                     Text(
-                      product["shopping_title"] ?? "No Title",
+                      (product["company_name"] ?? "Unknown").length + (product["shopping_title"] ?? "No Title").length > 20
+                          ? "[${product["company_name"] ?? "Unknown"}]\n${product["shopping_title"] ?? "No Title"}"
+                          : "[${product["company_name"] ?? "Unknown"}] ${product["shopping_title"] ?? "No Title"}",
                       textAlign: TextAlign.start,
                       style: TextStyle(
-                        fontSize: 15,
+                        fontSize: 12, // 기본 글자 크기
                         fontWeight: FontWeight.bold,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2, // 최대 2줄로 제한
+                      overflow: TextOverflow.ellipsis, // 초과 시 줄임표 표시
                     ),
+
                     SizedBox(height: 4.0),
                     // 포인트 정보
                     Text(
