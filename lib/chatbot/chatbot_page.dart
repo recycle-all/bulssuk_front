@@ -172,7 +172,17 @@ class _ChatBotPageState extends State<ChatBotPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('ChatBot')),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text(
+          '불쑥이에게 물어보기!', // 제목 텍스트
+          style: TextStyle(
+            fontWeight: FontWeight.normal, // 볼드 제거
+            fontSize: 18, // 텍스트 크기 조정
+            color: Colors.black, // 텍스트 색상 변경
+          ),
+        ),
+      ),
       body: Stack(
         children: [
           Padding(
