@@ -365,27 +365,42 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                           _isAuthFieldVisible = true;
                           _serverMessage = '인증번호가 발송되었습니다.';
                         });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('인증번호가 발송되었습니다.'),
+                          ),
+                        );
                       } else {
                         setState(() {
                           _serverMessage = '이메일 인증 실패.';
                         });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('이메일 인증 실패. 다시 시도해주세요.'),
+                          ),
+                        );
                       }
                     } catch (error) {
                       setState(() {
                         _serverMessage = '서버 오류: $error';
                       });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('서버 오류가 발생했습니다. 다시 시도해주세요.'),
+                        ),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(100, 48),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10), // 둥근 테두리
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    backgroundColor: Color(0xFFB0F4E6), // 버튼 배경색
+                    backgroundColor: Color(0xFFB0F4E6),
                   ),
                   child: Text(
                     '인증',
-                    style: TextStyle(color: Colors.black), // 버튼 텍스트 색상
+                    style: TextStyle(color: Colors.black),
                   ),
                 ),
               ],
@@ -426,6 +441,7 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                     ),
                   ),
                   SizedBox(width: 20),
+                  // 인증번호 확인 버튼
                   ElevatedButton(
                     onPressed: () async {
                       final email = _emailController.text;
@@ -449,27 +465,42 @@ class _SignUpInputPageState extends State<SignUpInputPage> {
                             _serverMessage = '인증 성공!';
                             _isAuthFieldVisible = false;
                           });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('이메일 인증에 성공했습니다!'),
+                            ),
+                          );
                         } else {
                           setState(() {
                             _serverMessage = '인증 실패. 다시 시도하세요.';
                           });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('인증번호가 올바르지 않습니다. 다시 시도해주세요.'),
+                            ),
+                          );
                         }
                       } catch (error) {
                         setState(() {
                           _serverMessage = '통신 실패: $error';
                         });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('서버 오류가 발생했습니다.'),
+                          ),
+                        );
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(100, 48), // 버튼 크기
+                      minimumSize: Size(100, 48),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10), // 둥근 테두리
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      backgroundColor: Color(0xFFB0F4E6), // 버튼 배경색
+                      backgroundColor: Color(0xFFB0F4E6),
                     ),
                     child: Text(
                       '확인',
-                      style: TextStyle(color: Colors.black), // 버튼 텍스트 색상
+                      style: TextStyle(color: Colors.black),
                     ),
                   ),
                 ],
