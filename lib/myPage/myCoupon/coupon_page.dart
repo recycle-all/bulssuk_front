@@ -42,9 +42,21 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print('Server response: $data'); // 서버 응답 전체 출력
         if (data['success'] == true && data['data'] != null) {
+          final List<Map<String, dynamic>> coupons = List<Map<String, dynamic>>.from(data['data']);
+          for (var coupon in coupons) {
+            print('Coupon: $coupon'); // 각 쿠폰 데이터를 출력
+          }
+
           setState(() {
-            _coupons = List<Map<String, dynamic>>.from(data['data']);
+            _coupons = coupons
+                .map((coupon) => {
+              'name': coupon['name'],
+              'imageurl': coupon['imageurl'], // 소문자 키로 매핑
+              'expirationdate': coupon['expirationdate'],
+            })
+                .toList();
             _isLoading = false;
           });
         } else {
@@ -54,7 +66,6 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
         throw Exception('쿠폰 조회 실패: ${response.statusCode}');
       }
     } catch (error) {
-      // 콘솔에 에러 메시지 출력 (스낵바 제거)
       debugPrint('쿠폰 조회 실패: $error');
       setState(() {
         _isLoading = false;
@@ -64,6 +75,10 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final DateTime now = DateTime.now();
     final List<Map<String, dynamic>> availableCoupons = _coupons
         .where((coupon) =>
@@ -116,24 +131,28 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
 
   Widget _buildNoticeSection() {
     return Container(
-      color: const Color(0xFFFCF9EC),
+      color: const Color(0xFFFCF9EC), // 배경색 추가
+      width: double.infinity, // 부모 위젯 크기를 화면 전체로 설정
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start, // 왼쪽 정렬
         children: const [
           Text(
             '쿠폰 사용 시 유의사항',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.left, // 텍스트 왼쪽 정렬
           ),
           SizedBox(height: 15),
           Text(
             '• 쿠폰은 유효기간 내에만 사용 가능합니다.\n'
                 '• 한 주문당 한 개의 쿠폰만 사용 가능합니다.\n'
                 '• 쿠폰은 일부 상품에 적용되지 않을 수 있습니다.',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.left, // 텍스트 왼쪽 정렬
           ),
         ],
       ),
@@ -155,6 +174,9 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
       itemCount: coupons.length,
       itemBuilder: (context, index) {
         final coupon = coupons[index];
+        final serverPath = coupon['imageurl'] ?? '';
+        final localPath = 'assets/${serverPath.split('/').last}';
+
         return Card(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
@@ -167,8 +189,8 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12.0),
-                  child: Image.network(
-                    coupon['imageUrl'] ?? '',
+                  child: Image.asset(
+                    localPath, // 변환된 경로 사용
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,

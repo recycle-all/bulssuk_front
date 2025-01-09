@@ -248,83 +248,87 @@ class _ShoppingPageState extends State<ShoppingPage> {
       backgroundColor: const Color(0xFFFFFEFD),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0), // 좌우 여백 추가
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // 한 줄에 2개의 상품
-            crossAxisSpacing: 23.0, // 상품 간의 가로 간격
-            mainAxisSpacing: 16.0, // 상품 간의 세로 간격
-            childAspectRatio: 0.8, // 카드의 가로세로 비율 조정
-          ),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ShoppingContentPage(
-                      shoppingNo: product["shopping_no"],
-                      onPurchase: handlePurchase,
-                      onCouponExchange: handleCouponExchange,
+          : Center( // GridView를 화면 중앙으로 배치
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2, // 한 줄에 2개의 상품
+              crossAxisSpacing: 23.0, // 상품 간의 가로 간격
+              mainAxisSpacing: 16.0, // 상품 간의 세로 간격
+              childAspectRatio: 0.8, // 카드의 가로세로 비율 조정
+            ),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ShoppingContentPage(
+                        shoppingNo: product["shopping_no"],
+                        onPurchase: handlePurchase,
+                        onCouponExchange: handleCouponExchange,
+                      ),
                     ),
-                  ),
-                );
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min, // 아이템 크기를 내용에 맞게 최소화
-                crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 정렬 유지
-                children: [
-                  // 상품 이미지
-                  Container(
-                    width: 138,
-                    height: 138,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(12.0),
-                      image: product["shopping_img"] != null
-                          ? DecorationImage(
-                        image: AssetImage(
-                          'assets/${product["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
-                        ),
-                        fit: BoxFit.cover,
-                      )
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min, // 아이템 크기를 내용에 맞게 최소화
+                  children: [
+                    // 상품 이미지
+                    Container(
+                      width: 170,
+                      height: 170,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(12.0),
+                        image: product["shopping_img"] != null
+                            ? DecorationImage(
+                          image: AssetImage(
+                            'assets/${product["shopping_img"]!.trim().replaceFirst('/uploads/images/', '')}',
+                          ),
+                          fit: BoxFit.contain,
+                        )
+                            : null,
+                      ),
+                      child: product["shopping_img"] == null
+                          ? Icon(Icons.image_not_supported,
+                          size: 40, color: Colors.grey)
                           : null,
                     ),
-                    child: product["shopping_img"] == null
-                        ? Icon(Icons.image_not_supported,
-                        size: 40, color: Colors.grey)
-                        : null,
-                  ),
-                  SizedBox(height: 8.0),
-                  // 상품 이름
-                  Text(
-                    product["shopping_title"] ?? "No Title",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+                    SizedBox(height: 8.0),
+                    // 상품 이름
+                    Text(
+                      product["shopping_title"] ?? "No Title",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4.0),
-                  // 포인트 정보
-                  Text(
-                    "${product["shopping_point"] ?? 0}포인트",
-                    style: TextStyle(
-                      color: Color(0xFF12D3CF),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                    SizedBox(height: 4.0),
+                    // 포인트 정보
+                    Text(
+                      "${product["shopping_point"] ?? 0}포인트",
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                        color: Color(0xFF12D3CF),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
-        )
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
-  }}
+  }
+}
