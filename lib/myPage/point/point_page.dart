@@ -203,7 +203,7 @@ class _PointPageState extends State<PointPage> {
                     children: [
                       Text(
                         item['point_reason'],
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 4.0),
                       Text(
