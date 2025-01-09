@@ -444,7 +444,7 @@ class _TreePageState extends State<TreePage> {
               const SizedBox(height: 20),
 
               Text(
-                "$nextLevel로 레벨업 하시겠습니까?",
+                "$nextLevel(으)로 레벨업 하시겠습니까?",
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 16, color: Colors.black87),
               ),
@@ -804,7 +804,7 @@ class _TreePageState extends State<TreePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 50),
 
             // 나무 상태 및 게이지 바
             Column(
@@ -819,7 +819,7 @@ class _TreePageState extends State<TreePage> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 50),
 
                 // 나무 멘트
                 Container(
@@ -849,7 +849,7 @@ class _TreePageState extends State<TreePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 70),
 
             // 작업 버튼
             Row(
