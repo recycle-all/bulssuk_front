@@ -187,6 +187,7 @@ class _CouponPageState extends State<CouponPage> with SingleTickerProviderStateM
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
+                // 이미지
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12.0),
                   child: Image.asset(
