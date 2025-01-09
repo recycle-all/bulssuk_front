@@ -141,7 +141,6 @@ class _ShoppingPageState extends State<ShoppingPage> {
       return 'Unknown'; // 오류 시 기본값
     }
   }
-
   void handlePurchase(int productPoints) {
     if (userPoints == null) {
       showDialog(
@@ -260,17 +259,13 @@ class _ShoppingPageState extends State<ShoppingPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
         title: Text(
-          "친환경 제품 구매하기",
-          style: TextStyle(color: Colors.black),
+          '친환경 제품 구매하기', // 제목 텍스트
+          style: TextStyle(
+            fontWeight: FontWeight.normal, // 볼드 제거
+            fontSize: 18, // 텍스트 크기 조정
+            color: Colors.black, // 텍스트 색상 변경
+          ),
         ),
       ),
       backgroundColor: const Color(0xFFFFFEFD),
@@ -284,7 +279,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
               crossAxisCount: 2, // 한 줄에 2개의 상품
               crossAxisSpacing: 23.0, // 상품 간의 가로 간격
               mainAxisSpacing: 16.0, // 상품 간의 세로 간격
-              childAspectRatio: 0.7, // 카드의 가로세로 비율 조정
+              childAspectRatio: 0.78, // 카드의 가로세로 비율 조정
             ),
             itemCount: products.length,
             itemBuilder: (context, index) {
@@ -308,8 +303,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   children: [
                     // 상품 이미지
                     Container(
-                      width: 163,
-                      height: 163,
+                      width: 150,
+                      height: 150,
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12.0),
@@ -327,7 +322,7 @@ class _ShoppingPageState extends State<ShoppingPage> {
                           size: 40, color: Colors.grey)
                           : null,
                     ),
-                    SizedBox(height: 6.0),
+                    SizedBox(height: 8.0),
                     // 상품 이름
                     Text(
                       (product["company_name"] ?? "Unknown").length + (product["shopping_title"] ?? "No Title").length > 20
