@@ -157,85 +157,87 @@ class _QuestionFormState extends State<QuestionForm> {
       onTap: () {
         FocusScope.of(context).unfocus(); // 화면 터치 시 키보드 숨기기
       },
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center, // 텍스트 박스 중앙 정렬
-          children: [
-            // 제목 입력 필드
-            Container(
-              width: double.infinity, // 부모 Column의 너비를 채우도록 설정
-              child: TextField(
-                controller: _titleController,
-                maxLength: 15, // 최대 글자 수 제한
-                decoration: InputDecoration(
-                  labelText: '제목 입력',
-                  labelStyle: const TextStyle(color: Colors.black),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: Color(0xFF67EACA), width: 2),
+      child: SingleChildScrollView( // 스크롤 가능하게 변경
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center, // 텍스트 박스 중앙 정렬
+            children: [
+              // 제목 입력 필드
+              Container(
+                width: double.infinity, // 부모 Column의 너비를 채우도록 설정
+                child: TextField(
+                  controller: _titleController,
+                  maxLength: 15, // 최대 글자 수 제한
+                  decoration: InputDecoration(
+                    labelText: '제목 입력',
+                    labelStyle: const TextStyle(color: Colors.black),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF67EACA), width: 2),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
 
-            // 내용 입력 필드
-            Container(
-              height: 300, // 원하는 높이로 설정
-              child: TextField(
-                controller: _contentController,
-                maxLines: null,
-                expands: true,
-                textAlignVertical: TextAlignVertical.top,
-                decoration: InputDecoration(
-                  labelText: '문의 내용 입력',
-                  labelStyle: const TextStyle(color: Colors.black),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 8.0),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                        color: Color(0xFF67EACA), width: 2),
+              // 내용 입력 필드
+              Container(
+                height: 300, // 원하는 높이로 설정
+                child: TextField(
+                  controller: _contentController,
+                  maxLines: null,
+                  expands: true,
+                  textAlignVertical: TextAlignVertical.top,
+                  decoration: InputDecoration(
+                    labelText: '문의 내용 입력',
+                    labelStyle: const TextStyle(color: Colors.black),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 8.0),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Color(0xFFCCCCCC)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                          color: Color(0xFF67EACA), width: 2),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 25.0),
+              const SizedBox(height: 25.0),
 
-            // 등록하기 버튼
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _submitInquiry,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFB0F4E6),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                  '등록하기',
-                  style: TextStyle(color: Colors.black, fontSize: 18),
+              // 등록하기 버튼
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submitInquiry,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFB0F4E6),
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                    '등록하기',
+                    style: TextStyle(color: Colors.black, fontSize: 18),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
