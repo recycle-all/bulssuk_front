@@ -211,9 +211,15 @@ class _TreePageState extends State<TreePage> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
+              backgroundColor: const Color(0xFFFCF9EC),
               title: const Text(
                 "쿠폰 선택",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  fontSize: 18,
+                ),
+                textAlign: TextAlign.center, // 제목 중앙 정렬
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -234,31 +240,80 @@ class _TreePageState extends State<TreePage> {
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("취소"),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    if (selectedCoupon != null) {
-                      Navigator.pop(context);
-                      print("선택된 쿠폰 번호: $selectedCoupon");
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // 취소 버튼
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          "취소",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
 
-                      // 쿠폰 저장 호출
-                      if (userNo != null) {
-                        await saveSelectedCoupon(userNo!, selectedCoupon!);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("사용자 정보를 확인할 수 없습니다.")),
-                        );
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("쿠폰을 선택해주세요.")),
-                      );
-                    }
-                  },
-                  child: const Text("확인"),
+                    // 확인 버튼
+                    GestureDetector(
+                      onTap: () async {
+                        if (selectedCoupon != null) {
+                          Navigator.pop(context);
+                          print("선택된 쿠폰 번호: $selectedCoupon");
+
+                          // 쿠폰 저장 호출
+                          if (userNo != null) {
+                            await saveSelectedCoupon(userNo!, selectedCoupon!);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("사용자 정보를 확인할 수 없습니다.")),
+                            );
+                          }
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("쿠폰을 선택해주세요.")),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          "확인",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
