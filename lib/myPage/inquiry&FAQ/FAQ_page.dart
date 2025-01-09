@@ -84,7 +84,7 @@ class _FAQPageState extends State<FAQPage> {
   // 섹션 제목 빌더
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0), // 패딩 추가
       child: Text(
         title,
         style: const TextStyle(
@@ -100,15 +100,15 @@ class _FAQPageState extends State<FAQPage> {
   Widget _buildQuestionItem(dynamic question) {
     return ExpansionTile(
       title: Text(
-        question['question'],
+        'Q: ${question['question']}',
         style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
       ),
       children: [
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Text(
-            question['answer'],
-            style: const TextStyle(fontSize: 14.0, color: Colors.grey),
+            'A: ${question['answer']}',
+            style: const TextStyle(fontSize: 14.0, color: Colors.black54),
           ),
         ),
       ],
