@@ -276,8 +276,8 @@ class _ShoppingPageState extends State<ShoppingPage> {
                   children: [
                     // 상품 이미지
                     Container(
-                      width: 170,
-                      height: 170,
+                      width: 160,
+                      height: 160,
                       decoration: BoxDecoration(
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(12.0),
