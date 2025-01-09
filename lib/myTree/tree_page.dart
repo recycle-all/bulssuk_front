@@ -783,7 +783,7 @@ class _TreePageState extends State<TreePage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _summaryTile(
-                  title: "현재 내 포인트",
+                  title: "내 포인트",
                   value: "$points P",
                   onTap: () {
                     Navigator.push(
